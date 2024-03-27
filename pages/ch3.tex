@@ -203,7 +203,23 @@ U-Net模型\cite{ronneberger2015u}最初是为生物医学图像分割任务而�
 
 \subsection{密集连接}
 
-密集连接网络（ Dense Convolutional Network，DenseNet）\cite{huang2017densely}是基于ResNet
+在前一节中，论文选取了Inception模块作为改进VSNet的方案，然而，值得注意的是，U-Net在处理MI-EEG分类任务时同样展现了一定的优势。由于EEG信号的特征相对简单，因此低级特征与高级语义信息都相对重要，U-Net因其特殊的跳跃连接结构有效地融合了这两种信息，然而，U-Net中通过解码器阶段将特征图恢复至原始空间尺寸的操作并非必要，因为在分类任务中，这种重建过程可能导致额外的计算负担且对分类性能的提升效果不明显。因此，在对VSNet进行改进时，论文从U-Net兼顾低级特征与高级语义信息的策略中得到启发，同时对不必要的特征图空间尺寸还原过程进行规避，以构建一个既能充分利用EEG信号中各级别特征信息，又具备高效计算能力的改进模型。
+
+Gao Huang等人于2016年提出了密集连接网络\cite{huang2017densely}（Dense Convolutional Network，DenseNet）。在传统卷积前馈神经网络的基础上，ResNet通过添加一个残差连接和非线性转换来实现恒等映射\cite{he2016deep}：
+\begin{equation}
+  x_l = H_l(x_{l-1}) + x_{l-1}
+  \label{eq:skip-conn}
+\end{equation}
+其中，\(x_l\) 为第 \(l\) 层的输出，\(H_l(·)\) 为非线性转换复合函数，可能包括一系列的批处理化、ReLU、池化及卷积操作。这样的设计使得梯度可以通过恒等函数从深层网络层流向浅层，然而，恒等函数和 \(H_l\) 的输出通过求和组合在一起，可能会影响网络中的信息流。为了层与层之间更好的信息流动，DenseNet提出了一种更为激进的连接模式：即引入从任意层到后续层的直接连接。DenseNet的第 \(l\) 层接收所有前序特征图为输入，
+
+
+传统卷积前馈神经网络中，第 \(l\) 层的输出为：
+\begin{equation}
+  x_l = H_l(x_{l-1})
+  \label{eq:classic-conv}
+\end{equation}
+其中，\(\) 代表非线性转换函数（Non-linear Transformation），
+DenseNet
 
 \subsection{基于密集连接改进的Inception模块}
 
