@@ -36,3 +36,40 @@ EEGNet的结构如图~\ref{fig:EEGNet}所示，其通过三个模块对原始二
 
 EEGNet模型简单、参数量小，在设计上借鉴了EEG信号解码领域的经典特征提取算法滤波器组共空间模式（Filter Bank Common Spatial Pattern，FBCSP），
 非常适合小数据集的MI-EEG分类任务，是许多相关研究的基础网络。因此，论文以EEGNet为基础，进行下一步的改进。
+
+
+Inception模块的层次数量和分支数量是影响其性能表现的两项关键参数，论文通过系统实验对这两项指标进行调整。参照文献\cite{santamaria2020eeg}，实验中将Inception模块的层级结构分别设定为一层、二层和三层，分别命名为Inception-1、Inception-2和Inception-3。同时，基于实践经验与对EEG信号特征的理解，将分支数目分别设定为3、4和5个，相应地，将具有对应分支数量的Inception模块分别标记为Inception-n3、Inception-n4和Inception-n5，以探究不同层级与分支配置对模型性能的影响。在进行实验时，固定了除待调整参数之外的其他参数，实验结果分别如表~\ref{tab:inception-layer}~和表~\ref{tab:inception-block}~所示。
+\begin{table}[ht]
+  \centering
+  \caption{Inception层次数量实验结果对比}
+  \label{tab:inception-layer}
+  \begin{tabularx}{\textwidth}{CCC}
+    \toprule
+    Models & ACC(\%) & Kappa \\
+    \midrule
+    Inception-1 & \textbf{75.71} & \textbf{0.67} \\
+    Inception-2 & 72.57 & 0.63 \\
+    Inception-3 & 66.85 & 0.56 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\begin{table}[ht]
+  \centering
+  \caption{Inception分支数量实验结果对比}
+  \label{tab:inception-block}
+  \begin{tabularx}{\textwidth}{CCC}
+    \toprule
+    Models & ACC(\%) & Kappa \\
+    \midrule
+    Inception-n3 & \textbf{72.54} & \textbf{0.63} \\
+    Inception-n4 & 71.15 & 0.61 \\
+    Inception-n5 & 71.42 & 0.62 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+实验结果显示，采用单层Inception模块且分支数设定为3时，模型展现出了最优性能。随着Inception模块层数的递增，模型性能呈下降态势，这与之前研究认为浅层网络与特征相对简单的EEG信号更适配的观点相吻合。同时，随着参数规模的增大，过拟合风险也随之增加。
+
+在探究分支数量变化的实验中，对于含3个分支的Inception模块，其特征提取的时间窗口设置为0.1秒、0.3秒和0.5秒，这对应着对4Hz及以上频带的信号特征提取。而对于拥有4个或5个分支的Inception模块，则在此基础上增加了0.7秒和0.9秒的时间窗口，从而进一步涵盖更低频段的特征提取。实验数据显示，随着分支数量增多，模型性能经历了先下降后回升的变化过程。这可能是由于2Hz以上的高频EEG信号（对应0.5秒以内的时间窗口）包含了更为关键的特征信息，虽然多尺度特征提取有助于提升网络性能，但较低频段的特征相对次要，而且，分支数量过多可能加剧过拟合风险，不利于模型的整体性能优化。
+
+目前的大多数迁移都是做二分类 四分类比较少

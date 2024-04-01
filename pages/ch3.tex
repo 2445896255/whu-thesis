@@ -4,11 +4,7 @@
 
 论文前两个章节主要对运动想象脑电图分类领域的基础知识以及相关研究做了一定的介绍，并且对该领域仍然存在的问题进行了分析。本章对这些问题进行进一步的探讨，针对这些问题构建了一种端到端的新模型：首先，以ShallowConvNet为基础，引入深度可分离卷积和轻量级注意力模块，减少网络参数，提高对重要通道数据的关注，同时促进时空特征的深度融合；其次，在以上模型的基础上，引入Inception模块替代时间卷积层，并行提取多尺度的时间特征，对该结构进行进一步改造，将密集连接引入Inception模块的分支中，更好地关注EEG信号的局部细节和浅层特征；最后，引入Transformer模块以更好地利用EEG信号的全局信息，并且针对EEG信号信噪比低的特点，引入软阈值模块对Transformer进行改进，从而减少噪声的干扰。经过以上一系列改进，最终构建了一种基于Inception和混合注意力的运动想象脑电图分类网络HIT-Net，在运动想象脑电图分类任务上能够取得更好的效果。
 
-\section{运动想象脑电图分类存在的问题}
-
-
-
-\section{基于EEGNet和注意力机制的紧凑型基础网络}
+\section{基于EEGNet和注意力机制的紧凑型基础网络VSNet}
 
 原始的EEG信号通常为二维数据，包括通道（电极）和时间两个维度，具体而言，在EEG信号矩阵中，行代表分布在头皮不同位置的采样通道，列为时间序列数据，每个采样点对应一个时间戳下的生物电信号（通常为电压值），因此，一列数据就是一个特定时间点下所有通道同步采集到的电压读数。原始的EEG信号经过预处理之后，可以转换为时频图、头皮点位拓扑图等输入模式，尽管经过转换的输入相较于原始输入能够更全面地体现EEG信号的时频空信息，但这一过程往往需要具有神经科学背景的人工参与，在增加了人工成本同时，限制了模型自适应学习EEG信号中蕴含的复杂时空特征的能力，此外，复杂的预处理环节也增加了计算开销和应用成本，难以满足BCI系统即时响应的需求。因此，端到端网络在MI-EEG分类领域受到越来越多的重视，这类网络不经过或者仅仅经过很少的预处理步骤，而由深度学习算法自适应地提取关键特征并作出预测。
 
@@ -93,7 +89,7 @@ scSE同样结合了通道注意力机制与空间注意力机制，基于SENet�
 
 2. 由神经科学先验知识可知，通道维度蕴含的信息量通常低于时间维度，因此，在时间卷积层之后使用瓶颈层进行适度的降维，以进一步缩减模型参数；
 
-3. 在模型中引入了一系列正则化技术，包括批量归一化（Batch Normalization）和随机Dropout等。
+3. 在模型中引入了一系列正则化技术，包括批量归一化（Batch Normalization，BN）和随机Dropout等。
 
 此外，论文将ShallowConvNet中的对数激活函数替换为GELU激活函数，前者基于FBCSP算法中的对数方差计算提出，后者基于高斯分布和自然梯度流提出，能够更自然地模拟神经元的概率行为，具有更好的连续性和光滑性\cite{hendrycks2016gaussian}，实验证明了GELU激活函数较之对数激活函数具有更好的效果。论文将改进后的模型称为Base-ConvNet，并在此基础上引入注意力机制进行进一步优化。
 
@@ -128,7 +124,7 @@ CBAM模块和scSE模块均为轻量级注意力模块，且均兼顾深度注意
 S-BaseNet的结构如图~\ref{fig:S-BaseNet}~所示。在ShallowConvNet的基础上，引入了瓶颈层用于数据的升维和降维，同时，将时间卷积和空间卷积替换为深度可分离卷积，并在时间卷积层和空间卷积层之后增加了scSE注意力模块，其通过深度注意力机制和空间注意力机制对特征图进行注意力加权，从而增强模型对于关键特征的关注度。相较于传统卷积神经网络，S-BaseNet具有较小的参数规模，在减小计算开销的同时能够缓解过拟合现象。
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{whulogo.pdf}
+  \includegraphics[height=0.8\textwidth]{S-BaseNet.pdf}
   \caption{S-BaseNet结构}
   \label{fig:S-BaseNet}
 \end{figure}
@@ -136,7 +132,7 @@ S-BaseNet的结构如图~\ref{fig:S-BaseNet}~所示。在ShallowConvNet的基础
 为进一步提升S-BaseNet模型性能，对其中的scSE模块进行改进。针对sSE模块，论文从CBAM模块的多维全局池化思想以及FBCNet模型的方差层设计\cite{mane2021fbcnet}得到启发，采用深度维度上的全局平均池化和全局方差计算操作代替原模块中的压缩操作，随后通过深度卷积对深度维度的特征图进行聚合，在更好地表征EEG信号特性的同时，进一步降低了参数规模。针对cSE模块，采用全局最大池化取代全局平均池化操作，实验证明了这一改动使模型具有更好的效果。此外，将scSE模块中的Sigmoid激活函数替换为Softmax激活函数，旨在更好地利用全局信息。论文将改良后的scSE模块称为V-scSE（Variance-Informed Spatial and Channel Squeeze-and-Excitation）模块，其结构如图~\ref{fig:V-scSE}~所示。使用V-scSE模块替换S-BaseNet模型中的scSE模块，最终得到ShallowConvNet结合V-scSE混合注意力模块的紧凑型端到端MI-EEG分类网络VSNet。VSNet网络结构能够直接处理未经过复杂预处理的原始EEG信号，其较小的参数规模不仅有助于缓解过拟合现象，还有利于降低计算资源消耗，提升训练速度。与此同时，ShallowConvNet结合V-scSE模块的架构增强了网络对EEG信号重要特征的关注度，实现了MI-EEG分类精度的提升，取得了较为理想的性能表现。
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{whulogo.pdf}
+  \includegraphics[width=\textwidth]{V-scSE.pdf}
   \caption{V-scSE结构}
   \label{fig:V-scSE}
 \end{figure}
@@ -205,24 +201,88 @@ U-Net模型\cite{ronneberger2015u}最初是为生物医学图像分割任务而�
 
 在前一节中，论文选取了Inception模块作为改进VSNet的方案，然而，值得注意的是，U-Net在处理MI-EEG分类任务时同样展现了一定的优势。由于EEG信号的特征相对简单，因此低级特征与高级语义信息都相对重要，U-Net因其特殊的跳跃连接结构有效地融合了这两种信息，然而，U-Net中通过解码器阶段将特征图恢复至原始空间尺寸的操作并非必要，因为在分类任务中，这种重建过程可能导致额外的计算负担且对分类性能的提升效果不明显。因此，在对VSNet进行改进时，论文从U-Net兼顾低级特征与高级语义信息的策略中得到启发，同时对不必要的特征图空间尺寸还原过程进行规避，以构建一个既能充分利用EEG信号中各级别特征信息，又具备高效计算能力的改进模型。
 
-Gao Huang等人于2016年提出了密集连接网络\cite{huang2017densely}（Dense Convolutional Network，DenseNet）。在传统卷积前馈神经网络的基础上，ResNet通过添加一个残差连接和非线性转换来实现恒等映射\cite{he2016deep}：
+Gao Huang等人于2016年提出了密集连接网络\cite{huang2017densely}（Dense Convolutional Network，DenseNet）。在ResNet的基础上，DenseNet提出了一种更为激进的连接模式：引入从任意层到后续层的直接连接，即密集连接（Dense Connection）。DenseNet的第 \(l\) 层接收所有前序特征图为输入，其输出为 \(x_l\)：
 \begin{equation}
-  x_l = H_l(x_{l-1}) + x_{l-1}
-  \label{eq:skip-conn}
+  x_l = H_l([x_0, x_1, ···, x_{l-1}])
+  \label{eq:dense-conn}
 \end{equation}
-其中，\(x_l\) 为第 \(l\) 层的输出，\(H_l(·)\) 为非线性转换复合函数，可能包括一系列的批处理化、ReLU、池化及卷积操作。这样的设计使得梯度可以通过恒等函数从深层网络层流向浅层，然而，恒等函数和 \(H_l\) 的输出通过求和组合在一起，可能会影响网络中的信息流。为了层与层之间更好的信息流动，DenseNet提出了一种更为激进的连接模式：即引入从任意层到后续层的直接连接。DenseNet的第 \(l\) 层接收所有前序特征图为输入，
+其中，\([x_0, x_1, ···, x_{l-1}]\) 代表第 \(0, ···, l-1\) 层的输出特征图，\(H_l(·)\) 代表非线性转换复合函数，可能包括一系列的批量归一化、ReLU、池化及卷积操作。密集连接的结构如图~\ref{fig:denseBlock}~所示。
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{denseBlock.pdf}
+  \caption{密集连接结构}
+  \label{fig:denseBlock}
+\end{figure}
 
+在密集连接模块中，所有的前序特征图通过Concentrate在深度维度上连接在一起，因此，在一个密集连接模块中所有特征图的大小是相同的。DenseNet提出了Transaction模块用于连接两个相邻的密集连接模块，并通过池化操作对特征图进行下采样，从而减小特征图的大小。
 
-传统卷积前馈神经网络中，第 \(l\) 层的输出为：
-\begin{equation}
-  x_l = H_l(x_{l-1})
-  \label{eq:classic-conv}
-\end{equation}
-其中，\(\) 代表非线性转换函数（Non-linear Transformation），
-DenseNet
+通过密集连接的方式，网络中的每一层都能够访问并整合所有前序层提取出的特征信息，进而充分利用EEG信号中的低层特征细节和高层语义信息。相较于U-Net中的编码-解码结构，密集连接无需经历数据空间的重建过程，即可实现特征的有效复用。此外，DenseNet中的Transition模块也为实现特征图的下采样提供了思路。
 
 \subsection{基于密集连接改进的Inception模块}
 
+原始的Inception模块和密集连接模块在计算机视觉图像分类任务中都取得了优秀的表现，在设计上，它们都考虑到了图像数据在空间维度具有等价的重要性。然而，EEG信号的时空信息具有不均衡的重要性，通常情况下，时间维度往往比空间维度蕴含更为丰富的信息。与此同时，研究指出\cite{lawhern2018eegnet}，当设计用于提取EEG特征的卷积核时，将时间卷积核长度设置为EEG信号采样率的一半，可以有效地捕获2Hz及以上频段的信号信息。因此，在处理EEG信号时，时间卷积核的长度应当依据EEG信号的实际采样率来灵活设定，以便提取不同频率成分的信号特征。
+
+鉴于上述EEG信号与图像数据的特性差异，原始的Inception模块和密集连接模块在未经适当改造的情况下，并不适合直接应用于MI-EEG分类任务。为此，有必要对这些模块进行针对性的调整和优化，以适应EEG信号的特性和MI-EEG分类任务的需求。
+
+鉴于EEG信号的时间维度蕴含着更为丰富的信息，论文对VSNet中的时间卷积层进行进一步的优化。论文将Inception模块中的卷积核概念转化为针对时间序列的一维卷积（尽管在实现时仍采用二维卷积），舍弃了原始Inception模块中针对图像数据的空间可分离卷积设计。为了更好地匹配EEG信号的采样特性及其内在频率成分，依据EEG信号的采样频率 \(sfreq\) 来动态调整Inception模块各个分支的时间卷积核大小，具体公式如下：
+\begin{equation}
+  kernel_i = sfreq \times time\_unit_i, \quad time\_unit_i \in \{0.1, 0.3, ···, 0.9\}
+  \label{eq:kernel_cal}
+\end{equation}
+其中，\(kernel_i\) 表示Inception模块第 \(i\) 个分支所使用的卷积核大小，而 \(sfreq\) 是EEG信号的采样频率，\(time\_unit_i\)  则为卷积核对应的时间单位，其取值范围分布在0.1秒至0.9秒的奇数间隔内。这样设置卷积核大小是为了更全面地捕捉EEG信号中不同频率成分的特征信息，同时避免因卷积核大小过于接近而导致提取的特征之间重叠度过高。例如，当采样周期设定为0.5秒时，卷积核大小将是采样率的一半，进而能够有效地捕获到2Hz及更高频段的EEG信号特征。
+
+
+原始Inception模块中采用了瓶颈层进行特征降维，然而考虑到在VSNet架构中，时间卷积层前置了瓶颈层对EEG信号进行适当的特征升维以挖掘更多信息，论文决定舍弃原始Inception模块中可能导致EEG信号特征损失的降维瓶颈层设计方案。
+
+在构建VSNet时，空间卷积层有两种不同的方式融入基于Inception改进的时间卷积层之后，一种是在每个Inception模块内部的分支结构上增加空间卷积层，另一种则是在整个Inception模块之后附加空间卷积层。图~\ref{fig:ts-incep}~展示了这两种引入方式的区别，将这两种方式分别称为分支内融合（Inception-In）和模块后融合（Inception-After），需要说明的是，图中省略了网络的其他结构，如瓶颈层等，以尽可能简洁地展现不同引入方式的差异。
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{ts-incepv2.pdf}
+  \caption{Inception模块引入空间卷积层的方式}
+  \label{fig:ts-incep}
+\end{figure}
+
+为了比较Inception-In与Inception-After的性能差异，论文在BCI Competition IV Dataset 2A数据集上设计实验进行对比。在实验设置阶段，固定了Inception模块的层次数量、分支数量等参数，实验结果如表~\ref{tab:ts-inception}~所示。在此，重点关注两项评价指标——准确率（Accuracy, ACC）和Kappa一致性系数（Kappa），这两项指标均基于数据集中九位受试者的平均表现。实验结果显示，Inception-After方式在准确率和一致性系数上均表现更优。这一优势可能源自两方面的原因：一方面，虽然Inception-In模式借鉴了FBCSP算法的分频段处理思路，但在Inception分支内部直接进行空间特征提取的过程中，损失了部分空间全局信息；另一方面，Inception-In结构具有相对更大的参数规模，这可能导致模型在有限样本条件下更容易出现过拟合现象。基于以上分析和实验验证，论文选择以Inception-After的方式布局时间卷积层与空间卷积层。
+\begin{table}[ht]
+  \centering
+  \caption{Inception-In、Inception-After实验结果对比}
+  \label{tab:ts-inception}
+  \begin{tabularx}{\textwidth}{CCC}
+    \toprule
+    Models & ACC(\%) & Kappa \\
+    \midrule
+    Inception-In & 63.31 & 0.51 \\
+    Inception-After & \textbf{75.35} & \textbf{0.70} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+在以上改进的基础上，为了同时充分挖掘和利用EEG信号中的低级特征与高级语义信息，论文选择在Inception模块中引入密集连接的概念，替代原有的时间卷积核设计。在DenseNet中，有两种不同构造的密集连接模块，分别是基础密集连接模块（Basic Dense Block）和带有瓶颈层的密集连接模块（Bottleneck Dense Block），它们的区别主要体现在非线性转换复合函数 \(H(·)\) 的设计上：
+
+1. 基础密集连接模块（Basic Dense Block）：
+
+其非线性转换复合函数定义为： \(H(·) = BN + ReLU + 3 \times 3\;conv\)。
+
+2. 瓶颈密集连接模块（Bottleneck Dense Block）：
+
+其非线性转换复合函数更为复杂，包括两个卷积层、两次BN和ReLU激活：\(H(·) = BN + ReLU + 1\times1\;conv + BN + ReLU + 3 \times 3\;conv\)。加入瓶颈层的主要原因在于降低特征维度的数量，从而提升模型计算效率。
+
+论文对Inception模块第 \(i\) 个分支采用了基于Bottleneck Dense Block的密集连接模块，并对其进行了适当调整，定义的非线性转换复合函数 \(H(·)\) 如下：
+\begin{equation}\label{eq:dense-kernel}
+  \begin{split}
+    &H(·) = BN + GeLU + 1\times1\;conv + BN +  1 \times kernel_i\;conv + Dropout \\
+    &kernel_i = sfreq \times time\_unit_i, \quad time\_unit_i \in \{0.1, 0.3, ···, 0.9\}
+  \end{split}
+\end{equation}
+相较于原始的Bottleneck Dense Block，论文在前文研究的基础上做出了以下改进，分别为：根据EEG信号的特性调整了卷积核大小；选用性能更优的激活函数GeLU替代ReLU；引入了Dropout层，以进一步缓解过拟合现象。
+
+经过上述基于密集连接策略的改进，新构建模型的结构如图~\ref{fig:incep-dense}~所示，将其命名为DI-VSNet。Dense-Inception module构成了时间卷积层，其内部的各个分支均由一系列改进版的Bottleneck Dense Block紧密堆叠而成，形成密集连接结构，用以同时获取浅层和深层的时间特征。每个分支提取的特征图在深度维度上进行聚合，并通过Transaction模块进行深度压缩和特征整合，以进一步提升模型的表达能力和计算效率。
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{incep-dense.pdf}
+  \caption{DI-VSNet结构}
+  \label{fig:incep-dense}
+\end{figure}
 \section{基于软阈值化改进的Transformer模块}
 
 
