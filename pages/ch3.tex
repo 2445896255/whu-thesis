@@ -276,14 +276,25 @@ Gao Huang等人于2016年提出了密集连接网络\cite{huang2017densely}（De
 \end{equation}
 相较于原始的Bottleneck Dense Block，论文在前文研究的基础上做出了以下改进，分别为：根据EEG信号的特性调整了卷积核大小；选用性能更优的激活函数GeLU替代ReLU；引入了Dropout层，以进一步缓解过拟合现象。
 
-经过上述基于密集连接策略的改进，新构建模型的结构如图~\ref{fig:incep-dense}~所示，将其命名为DI-VSNet。Dense-Inception module构成了时间卷积层，其内部的各个分支均由一系列改进版的Bottleneck Dense Block紧密堆叠而成，形成密集连接结构，用以同时获取浅层和深层的时间特征。每个分支提取的特征图在深度维度上进行聚合，并通过Transaction模块进行深度压缩和特征整合，以进一步提升模型的表达能力和计算效率。
+经过上述基于密集连接策略的改进，新构建模型的结构如图~\ref{fig:incep-dense}~所示，将其命名为DI-VSNet。Dense-Inception module构成了时间卷积层，其内部的各个分支均由一系列改进版的Bottleneck Dense Block紧密堆叠而成，形成密集连接结构，用以同时获取浅层和深层的时间特征。每个分支提取的特征图在深度维度上进行聚合，并通过Transaction模块进行深度压缩和特征整合，以进一步提升模型的表达能力和计算效率。需要说明的是，Dense-Inception module的数量，以及Dense-Inception module的分支数量、Dense block的数量，都是可调的超参数。
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{incep-dense.pdf}
   \caption{DI-VSNet结构}
   \label{fig:incep-dense}
 \end{figure}
+
 \section{基于软阈值化改进的Transformer模块}
+
+卷积神经网络中，尽管卷积层因其局部感受野能够出色地捕获信号中的局部时空特征，但对于那些跨越较长时间跨度和空间分布的复杂交互信息，其建模能力受限。而Transformer模型因其自注意力机制（Self-Attention）可以在不考虑输入位置顺序的情况下，灵活地捕捉并编码任意两点之间的相互依赖关系，从而能够更有效地理解和处理长距离依赖，但与此同时，其可能无法充分提取局部时空特征。银日，论文选择将两者进行结合，用于MI-EEG分类任务。
+
+原始的Transformer模型是编码器-解码器（Encoder-Decoder）结构，编码器负责对输入序列进行编码，提取其蕴含的语义和上下文信息，解码器负责基于编码器提供的上下文信息生成目标序列，即编码器用于对输入序列的变换加权，解码器用于生成目标序列。在MI-EEG分类任务中，Transformer模型只用来提取长距离依赖信息，而无需生成目标序列，因此，只需要使用编码器。
+
+\subsection{Transformer并行连接的模型}
+
+\subsection{Transformer编码器构建}
+
+\subsection{基于软阈值化改进的Transformer}
 
 
 \section{基于Inception和混合注意力的运动想象脑电图分类网络HIT-Net}
