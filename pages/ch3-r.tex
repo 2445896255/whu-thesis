@@ -379,7 +379,13 @@ GhostNet\cite{han2020ghostnet}由华为诺亚方舟实验室提出，其核心�
 
 ShuffleNetV2的优势体现在其利用通道混洗操作促进不同特征图组之间的信息交互，特别是在Channel Split机制中，它将特征图分割成两个部分，其中一个部分不经额外计算直接向下进行传递，这种设计有助于减少模型分支内的参数量。然而，ShuffleNetV2在进行Channel Split时，通常是对特征图进行均匀划分，这种方式难以灵活调整直传特征图的比例，可能导致对重要特征信息的有效利用率不足，并且在极端情况下可能影响模型精度。此外，ShuffleNetV2的基础结构在深度维度上的特征变换主要依赖于1×1卷积，这在一定程度上限制了其内在的深度特征变换能力。
 
-为了提升ShuffleNetV2基本模块在深度特征变换方面的能力，论文提出了一种可调节分支比例的Shuffle模块（Adaptive Shuffle Module, AS模块），其架构如图(a)所示。假设卷积层的输入深度为 \(D_{in}\)，输出深度为 \(D_{out}\)，针对不同的输入输出深度关系（即 \(D_{in} \le D_{out}\) 和 \(D_{in} > D_{out}\) ），论文对AS模块进行了优化，分别形成了图(b)所示的GAS模块（Growing Adjustable Shuffle Module）和图(c)所示的SAS模块（Straight Adjustable Shuffle Module）。
+为了提升ShuffleNetV2基本模块在深度特征变换方面的能力，论文提出了一种可调节分支比例的Shuffle模块（Adaptive Shuffle Module, AS模块），其架构如图~\ref{fig:as}~(a)所示。假设卷积层的输入深度为 \(D_{in}\)，输出深度为 \(D_{out}\)，针对不同的输入输出深度关系（即 \(D_{in} \le D_{out}\) 和 \(D_{in} > D_{out}\) ），论文对AS模块进行了优化，分别形成了图~\ref{fig:as}~(b)所示的GAS模块（Growing Adjustable Shuffle Module）和图~\ref{fig:as}~(c)所示的SAS模块（Straight Adjustable Shuffle Module）。图中的DW Conv指深度卷积（Depthwise Convolution）。
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{AS.pdf}
+    \caption{AS、GAS、SAS模块结构}
+    \label{fig:as}
+\end{figure}
 
 对于GAS模块，在保留原有直接传递分支的同时，对进行深度变换的分支进行了如下改进：根据采样频率特性调整卷积核大小，为了描述的简洁性，以时间域特征提取卷积模块为例，并将其卷积核大小设定为1 \times 25，对于采样频率为250Hz的BCI Competition IV Dataset 2A数据集而言，意味着该卷积核以0.1秒的时间窗口进行特征捕获。进入变换分支的特征图首先通过1 \times 1卷积实现深度变换，紧接着通过1 \times 25的深度卷积进行特征提取，最后再次通过1 \times 1卷积将深度变换至输出需要的深度。在此过程中，加入了批归一化和GeLU激活函数。这样设计的目的是优化GAS模块对MI-EEG分类任务的性能。
 
@@ -387,7 +393,15 @@ ShuffleNetV2的优势体现在其利用通道混洗操作促进不同特征图�
 
 对于SAS模块，其在变换分支的设计上采用了与GAS模块一致的改进措施，但去掉了最后的1\times1卷积层，而由第一个1\times1卷积层将深度降维至输出维度，再由1\times25卷积层进行特征的提取。然而，在直接传递分支上,进一步引入了深度维度上的平均池化操作，目的在于在不增添额外参数的前提下，有效减少特征图的数量。SAS模块的池化分支的特征图输入数量 \(BS_{in}\) 设定为 \(BS_{in} = D_{in} \times ratio\)，对应的输出数量 \(BS_{out}\) 设定为 \(BS_{out} = D_{out} \times ratio\)。而变换分支的特征图输入数量\(BT_{in}\) 则设定为 \(BT_{in} = D_{in} - BS_{in}\)，其输出特征图数量 \(BT_{out}\) 计算为 \(BT_{out} = D_{out} - BS_{out}\)。相较于原始的Shuffle unit，GAS模块和SAS模块在功能上进行了扩展，不仅包含了特征维度的升维和降维处理，而且还引入了一个可调节的权重参数  \(ratio\)，以动态控制两个分支的特征图数量。这样一来，这两种模块在处理MI-EEG分类任务时，能够更加灵活和高效地调整特征空间的分布和深度特征的提取，从而更好地适应任务需求和优化模型性能。
 
-GhostNet的优势在于其Ghost模块设计，该模块凭借对特征图间内在相似性的有效利用，实现了低成本的特征转换操作。然而，Ghost模块在运用线性变换与传统卷积相结合的方式来产生新特征图的过程中，尚存在一定的局限性，即生成的特征图之间交互作用不充分。鉴于此，论文进一步改良了Ghost模块，引入了通道混洗机制，构建出SG模块（Shuffle Ghost Module）。SG模块的结构如图所示，通过通道混洗机制增强不同特征图之间的相互作用，进而提升网络的整体表现力和特征学习能力。此外，SG模块采用与GAS模块相同的方式对Ghost模块内部的卷积核大小进行了修改，并加入了批归一化和GeLU激活函数。
+GhostNet的优势在于其Ghost模块设计，该模块凭借对特征图间内在相似性的有效利用，实现了低成本的特征转换操作，同时，GhostNet中同样使用了权重参数 \(ratio\)，用以控制经由廉价线性转换进行操作的特征图的比例。然而，Ghost模块在运用线性变换与传统卷积相结合的方式来产生新特征图的过程中，尚存在一定的局限性，即生成的特征图之间交互作用不充分。鉴于此，论文进一步改良了Ghost模块，引入了通道混洗机制，构建出SG模块（Shuffle Ghost Module）。SG模块的结构如图~\ref{fig:sg}~所示，通过通道混洗机制增强不同特征图之间的相互作用，进而提升网络的整体表现力和特征学习能力，图中的DW Conv指深度卷积。此外，SG模块采用与GAS模块相同的方式对Ghost模块内部的卷积核大小进行了修改，并加入了批归一化和GeLU激活函数。
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{SG.pdf}
+    \caption{SG模块结构}
+    \label{fig:sg}
+\end{figure}
+
+论文针对通道混洗算法进行了优化升级，使其具备了对不同数量分组及不同数量组内特征图进行灵活、均衡混洗的能力。这使得无论组及组内特征图的数量如何变化，该算法都能够实现有效的特征交互与信息整合，从而增强了网络对多种复杂场景的适应性和泛化能力。
 
 \section{基于MEKT算法改进的MI-EEG迁移学习算法SV-MEKT}
 
