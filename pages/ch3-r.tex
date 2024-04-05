@@ -351,11 +351,27 @@ MHA的输出会在全连接前馈神经网络（FFN）中进行转换，并同�
 
 \section{基于HIT-Net轻量化的端到端MI-EEG分类网络HIT-lightNet}
 
-尽管HIT-Net采用了瓶颈层、深度可分离卷积等多种方式降低模型的参数规模，但仍然需要进行进一步的轻量化以获得更好的实时性性能，本节
+考虑到BCI系统对即时响应具有较高的要求，虽然HIT-Net已运用了瓶颈层、深度可分离卷积等手段有效地缩减了模型参数量，但为了追求更加卓越的实时性能表现，仍有进行进一步轻量化的必要。HIT-Net模型参数的主要来源在于Transformer模块和密集连接模块。针对Transformer模块的轻量化策略包括但不限于减少原始层级数目、量化参数类型及运用知识蒸馏技术。然而，面对小样本规模的EEG信号数据集，由于缺乏足够的大数据训练支撑，论文主要采取了减少原始层数这一轻量化途径。具体来说，对于CT-Block设计了更为高效的下采样方案，将原本由多个Transformer单元组成的Transformer分支精简为仅包含一个Transformer单元。与此同时，对于密集连接模块以及其他卷积层，论文进行针对性的轻量化卷积设计，并将在下文中对轻量化卷积模块的设计思路与方案加以阐述。
 
 \subsection{经典轻量级网络结构}
 
+MobileNet由Google团队提出，其核心思想在于引入了深度可分离卷积（Depthwise Separable Convolution）\cite{howard2017mobilenets}，通过深度卷积处理单个输入通道，然后使用点积卷积（也称为逐点卷积或1x1卷积）跨通道整合信息。这种分解大幅减少了计算成本和模型大小，同时保持了较高的精度。在V2版本中，引入了反转残差（Inverted Residual）结构\cite{sandler2018mobilenetv2}，不同于常规残差块的设计，它在网络较窄的地方采用线性瓶颈层增加深度，而非在宽度较大的地方。此外，MobileNetV2取消了线性瓶颈层后的小维度特征上的ReLU激活函数，以此来保持更多的非线性表达能力。V3版本在前两代的基础上，通过结合人类专家指导的网络设计原则与自动化的网络结构搜索（Network Architecture Search，NAS）技术\cite{howard2019searching}，进一步定制了模型结构，即每个卷积层的具体通道数和操作类型都根据NAS的结果确定。此外，MobileNetV3还引入了Hard Swish这一新的激活函数以及其他的优化策略。
 
+ShuffleNet\cite{zhang2018shufflenet}由旷视科技的研究团队所开发，其设计目标在于实现模型计算效率与预测准确性的均衡优化。为了解决分组卷积可能导致的组间特征孤立问题，ShuffleNet引入了通道混洗（Channel Shuffle）技术，即在执行完分组卷积之后，对各组内的特征图进行有序重组，以促进不同组间的特征信息相互交织和传播，从而增强模型的特征表达能力。此外，ShuffleNet针对分组卷积的配置进行了精细化调整，科学地配置组的数量和各组内的通道数，以便在有限的计算资源条件下最大限度地提升模型性能。在V2\cite{ma2018shufflenet}版本中，研究团队提出了一套高效卷积神经网络设计原则，并据此对ShuffleNetV1架构做出了改进。他们摒弃了1 \times 1的分组卷积操作，转而采用通用卷积来替代，并提出了通道分割（Channel Split）策略。具体而言，模型将输入特征图均匀划分为两个部分，一部分不经额外计算直接向下传输，另一部分则经历一系列计算后再与前者合并。在concatenate操作之后，继续实施通道混洗操作，从而有效提升模型在轻量化条件下的性能表现。ShuffleNet的结构如图~\ref{fig:shufflenet}~所示，图~\ref{fig:shufflenet}~(a)是ShuffleNet的基本单元，图~\ref{fig:shufflenet}~(b)在ShuffleNet基本单元的基础上增加了下采样，图~\ref{fig:shufflenet}~(c)是ShuffleNetV2的基本单元，图~\ref{fig:shufflenet}~(d)在ShuffleNetV2基本单元的基础上增加了下采样。
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{shufflenet.pdf}
+    \caption{ShuffleNet结构}
+    \label{fig:shufflenet}
+\end{figure}
+
+GhostNet由华为诺亚方舟实验室提出，其核心思想在于提出了幻影模块（Ghost Module）\cite{han2020ghostnet}，该模块针对深度神经网络中存在的潜在冗余和相关性较高的特征图问题，通过高效的计算策略提炼出“幻影特征图”。研究团队发现，在许多情况下，多个特征图可能蕴含着相似的模式信息，这意味着部分特征图的信息实质上可以从其他特征图中推衍得出，犹如“幻影”。鉴于此，GhostNet摒弃了对每组特征图均采用标准卷积的传统做法，转而采用一种更为经济高效的计算方式去合成这类“幻影特征图”。在具体实施中，首先运用有限数量的标准卷积层提取基础特征图，以此严格控制参数规模，接下来通过对基础特征图施加一组精心设计的线性变换（通常是深度可分离卷积中的逐点卷积操作），高效地生成大量辅助特征图，这些辅助特征图被视为原始特征图的“幻影”。最后，Ghost模块将“幻影特征图”与标准卷积产生的少量核心特征图整合在一起，以有效模拟传统卷积所带来的丰富表征能力，在保持高精度的同时，降低了模型的计算复杂性和参数规模。Ghost模块的结构如图~\ref{fig:ghost}~所示，其中，Identity操作由标准卷积生成的特征图，\(\Phi\) 为廉价线性变换。
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{ghost.pdf}
+    \caption{Ghost模块结构}
+    \label{fig:ghost}
+\end{figure}
 
 \subsection{ShuffleNet结合GhostNet的轻量化卷积模块}
 
