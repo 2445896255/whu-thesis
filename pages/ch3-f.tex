@@ -2,15 +2,204 @@
 
 \chapter{基于双分支特征融合和注意力机制的运动想象脑电图分类网络构建}
 
-\section{基于双分支特征融合和注意力机制的端到端MI-EEG分类网络HAFuseNet}
+论文前两个章节主要对运动想象脑电图(Motor Imagery Electroencephalography，MI-EEG)分类领域的基础知识以及相关研究做了一定的介绍，并且对该领域仍然存在的问题进行了分析。本章对这些问题进行进一步的探讨，针对这些问题提出了一种端到端的新模型HA-FuseNet：
+
+\section{基于双分支特征融合和注意力机制的端到端MI-EEG分类网络HA-FuseNet}
+
+原始的EEG信号通常为二维数据，包括通道（电极）和时间两个维度，具体而言，在EEG信号矩阵中，行代表分布在头皮不同位置的采样通道，列为时间序列数据，每个采样点对应一个时间戳下的生物电信号（通常为电压值），因此，一列数据就是一个特定时间点下所有通道同步采集到的电压读数。原始的EEG信号经过预处理之后，可以转换为时频图、头皮点位拓扑图等输入模式，尽管经过转换的输入相较于原始输入能够更全面地体现EEG信号的时频空信息，但这一过程往往需要具有神经科学背景的人工参与，在增加了人工成本同时，限制了模型自适应学习EEG信号中蕴含的复杂时空特征的能力，此外，复杂的预处理环节也增加了计算开销和应用成本，难以满足BCI系统即时响应的需求。因此，端到端网络在MI-EEG分类领域受到越来越多的重视，这类网络不经过或者仅仅经过很少的预处理步骤，而由深度学习算法自适应地提取关键特征并作出预测。
+
+为此，论文构建了基于双分支特征融合和注意力机制的端到端MI-EEG分类网络HA-FuseNet，其结构如图所示。HA-FuseNet有两条并行分支，分别是基于卷积神经网络搭建的分支与基于长短期记忆网络的分支。卷积神经网络分支基于Inception结构搭建，通过在Inception分支引入密集连接结构，进行多尺度特征提取，同时利用高级语义信息与浅层特征；通过引入反转瓶颈层，在深度维度上促进时空特征的融合；通过引入svSE混合注意力模块促进网络对重要特征的关注度，svSE模块采取时空特征分离的策略，同时利用了EEG信号的方差信息，以获得针对性的结果。长短期记忆网络分支用以获取时间域的长期依赖信息，并且加入了SCoT全局注意力模块获取时空域的全局上下文信息。双分支的特征通过C2R模块和R2C模块进行交互，并随后在深度维度进行融合，以在利用卷积神经网络提取到的局部信息的同时有效地建立全局依赖关系，从而获取更为精准的分类效果。
+
+通过HA-FuseNet，可以更完整地获取MI-EEG信号的有效特征，提升分类效果。在下文中，将依次阐述论文的改进思路与构建方法。
 
 \section{基于多尺度密集连接和混合注意力的网络分支}
 
+卷积神经网络具有强大的特征提取能力，在计算机视觉等领域应用广泛。EEG信号在时空域上具有局部相关性，即相邻的电极点和相近的时间窗内的信号往往携带相似的信息（但数据中相邻的行未必在空间域中相邻），因此，可以将EEG信号视为二维图像，使用卷积神经网络提取其局部特征。
+
 \subsection{基于Inception的基础网络}
+
+ShallowConvNet\cite{schirrmeister2017deep}是一个专为端到端解码脑电图（EEG）信号而设计的深度学习架构，其构思源自EEG信号解码研究领域中广泛使用的经典特征提取方法——滤波器组共空间模式（Filter Bank Common Spatial Pattern, FBCSP）\cite{ang2008filter}。ShallowConvNet具有FBCSP算法对频带功率特征高效提取的特性，在实验中证明了能够学习频带功率变化的时间结构特性\cite{schirrmeister2017deep}，研究发现，该特性有助于提高分类性能\cite{sakhavi2015parallel}。实验证明，ShallowConvNet在MI-EEG分类领域具有优良的性能\cite{lawhern2018eegnet}，其采用四步流程对原始二维输入数据进行处理。具体而言，ShallowConvNet首先通过时间卷积层捕获信号的时间域特征，再通过空间卷积层捕获这些时间特征在不同通道间的空间关联性，随后通过平均池化层进行下采样，最后通过全连接层将多维特征映射至分类输出空间。ShallowConvNet提出的时间卷积与空间卷积相分离的策略是由于EEG原始输入的时域与空域之间的相关性较低，后续的研究大多沿袭了这种方法，论文同样遵循这一思路对EEG信号进行处理。
+
+将EEG原始输入视为具有空间信息的图像数据，论文参考以下几种计算机视觉领域的经典模型，用于网络的特征提取基础结构：
+
+(1) Inception网络
+
+Inception模块起源于经典的GoogLeNet模型\cite{szegedy2015going}，并在计算机视觉图像分类任务中取得了优异的效果。传统卷积神经网络倾向于通过加深和拓宽网络结构以增进性能，然而这种做法伴随着参数数量的激增，不仅加大了计算负担，还可能导致过拟合问题。在这种背景下，Inception模块提出了多尺度特征并行抽取的策略，旨在保持网络稀疏性的同时，充分利用密集矩阵运算的高性能。典型的Inception-V1模块的结构如图~\ref{fig:Inception}~所示，其将不同大小的卷积层和最大池化层并行排列，并行地对输入数据执行多种卷积和池化运算，继而将提取到的不同尺度特征在深度维度上进行拼接。这种设计能够在单层网络内并行地提取输入数据在不同层次和粒度的特征信息，从而在高效扩展网络的深度和宽度的同时，有效削减参数规模，提升计算速度。此外，Inception模块中引入了1\times1卷积核，用以实现深度上的特征转化和降维，这种方式能够让模型学习到更为丰富的特征，同时降低计算成本。后续的论文中，Inception模块不断迭代优化，陆续引入了批归一化、深度可分离卷积、矩阵因子分解等技术，进一步提升了模型的性能\cite{szegedy2016rethinking}\cite{szegedy2017inception}。
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\textwidth]{Inception.pdf}
+  \caption{Inception结构}
+  \label{fig:Inception}
+\end{figure}
+
+(2) 残差神经网络
+
+残差神经网络（Residual Network，ResNet）\cite{he2016deep}是计算机视觉图像识别领域的一个经典模型。ResNet研究发现了深度神经网络的退化现象（Degradation），即随着网络深度不断增加，模型准确率起初随深度上升，却在达到峰值后急剧下滑。针对这种现象，ResNet提出了残差学习框架，其核心思想是引入残差块（Residual Block），每个残差块通过快捷连接（Shortcut Connection）将输入信息直接输送至输出层，使得网络只需要专注学习输入与输出之间的残差信息，而非完整的映射关系。基础的ResNet由一系列残差块堆叠而成，残差块的结构如图~\ref{fig:ResNet}~所示。通过快捷连接，ResNet在训练过程中，梯度能够从深层网络直接回传至浅层，避免网络深度增加带来的训练困难和性能下降问题，从而提升深度神经网络的性能表现和训练效率。
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\textwidth]{ResNet.pdf}
+  \caption{残差块结构}
+  \label{fig:ResNet}
+\end{figure}
+
+(3) U-Net
+
+U-Net模型\cite{ronneberger2015u}最初是为生物医学图像分割任务而设计，其具有优秀的性能，尤其在细胞、器官和病变区域的精确标注上表现出色，是医学图像分割领域的主流模型之一。U-Net的独特之处在于其采用了对称的编码-解码结构（Encoder-Decoder）和跳跃连接（skip connection），其结构如图~\ref{fig:UNet}~所示。编码器通过连续的卷积和下采样层对输入图像进行深度特征提取和空间压缩，提炼出高级抽象特征；解码器部分则通过上采样和卷积恢复到与输入图像相同的空间分辨率，同时保留详细的定位信息。跳跃连接将编码器各阶段的特征图直接传递给相应的解码器阶段，有效地结合了包含更多细节信息的浅层特征和包含更多高级语义信息的深层特征，从而在图像分割任务中能够取得更为精细的分割效果。同时，U-Net模型结构简单，易于训练，能够缓解小样本数据集上的过拟合问题。
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\textwidth]{UNet.pdf}
+  \caption{U-Net结构}
+  \label{fig:UNet}
+\end{figure}
+
+在这三种模型中，Inception和ResNet均在图像分类任务中展现出了优秀的性能。Inception通过同一层网络内的多尺度特征并行抽取，在不显著增加网络深度的前提下，实现了特征提取的广度与效率的提升。ResNet通过引入快捷连接，解决了深度神经网络训练过程中的梯度消失和退化问题，增强了深层次网络的训练效率和性能表现。U-Net则在生物医学图像分割领域取得了优秀的表现，医学图像的语义信息较为简单，且结构较为固定，因此高级语义信息和低级特征都相对重要，U-Net通过跳跃连接保留并融合了这两类信息，同时，U-Net参数量较小，不容易在小样本数据集上发生过拟合现象。论文选择将U-Net迁移至MI-EEG分类任务中，是因为EEG信号具有与生物医学图像类似的生理特性，如特征相对简单、数据集规模偏小等。
+
+为了验证Inception、ResNet与U-Net在EEG信号分类任务中的性能，论文在BCI Competition IV Dataset 2A数据集上进行实验对比。在实验设置中，统一将三种模型的网络深度调整为三层，并对其他关键参数如卷积核大小、学习率等进行了固定，此外，对这三种模型的原始代码进行了调整，使得其适应MI-EEG分类任务。实验结果如表~\ref{tab:Incep-Res-U}~所示，主要展示准确率（Accuracy，ACC）和Kappa一致性系数（Kappa）指标，这两项指标是数据集中九位受试者的平均表现。
+\begin{table}[ht]
+  \centering
+  \caption{Inception、ResNet、U-Net实验结果对比}
+  \label{tab:Incep-Res-U}
+  \begin{tabularx}{\textwidth}{CCC}
+    \toprule
+    Models & ACC(\%) & Kappa \\
+    \midrule
+    Inception & \textbf{67.40} & \textbf{0.56} \\
+    ResNet & 56.94 & 0.43 \\
+    U-Net & 62.27 & 0.50 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+实验数据显示，Inception模型在这三种模型中具有最优的性能表现，U-Net次之，ResNet的表现则相对较差。这可能是因为同样的网络深度下，Inception模型得益于多尺度并行特征提取机制，能更全面地捕获EEG信号的多种特征。相比之下，U-Net虽然通过跳跃连接有效地结合了EEG信号的低层特征和高层语义信息，但在解码器阶段，U-Net将特征图重建至原始空间尺寸的过程可能为分类任务引入了不必要的复杂性。ResNet的快捷连接在较浅层网络结构中可能未能完全发挥其优势，更适用于深层次网络。实验结果与过往研究中关于浅层网络更适合MI-EEG分类任务的研究结论相互印证。综上所述，论文选用Inception模块作为MI-EEG信号特征提取的基础结构，旨在保持模型简洁高效的同时，在MI-EEG分类任务中取得更好的性能。
+
+EEG信号的空间分辨率较为不稳定，例如，在BCI Competition IV Dataset 2B\cite{tangermann2012review}数据集中，仅仅使用了三个电极采集MI-EEG信号，使得空间信息相对时间信息更为稀疏。为了减少对高空间分辨率的依赖，论文采取更关注时间特征的策略，即将Inception模块应用于时间卷积层中，使得时间卷积层的复杂度高于空间卷积层的复杂度，从而保持相对均衡的特征提取。
+
+空间卷积层有两种不同的方式融入基于Inception改进的时间卷积层之后，一种是在每个Inception模块内部的分支结构上增加空间卷积层，另一种则是在整个Inception模块之后附加空间卷积层。图~\ref{fig:ts-incep}~展示了这两种引入方式的区别，将这两种方式分别称为分支内融合（Inception-In）和模块后融合（Inception-After），需要说明的是，图中省略了网络的其他结构，如瓶颈层等，以尽可能简洁地展现不同引入方式的差异。
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{ts-incepv2.pdf}
+  \caption{Inception模块引入空间卷积层的方式}
+  \label{fig:ts-incep}
+\end{figure}
+
+为了比较Inception-In与Inception-After的性能差异，论文在BCI Competition IV Dataset 2A数据集上设计实验进行对比。在实验设置阶段，固定了Inception模块的层次数量、分支数量等参数，实验结果如表~\ref{tab:ts-inception}~所示。在此，重点关注两项评价指标——准确率（Accuracy, ACC）和Kappa一致性系数（Kappa），这两项指标均基于数据集中九位受试者的平均表现。实验结果显示，Inception-After方式在准确率和一致性系数上均表现更优。这一优势可能源自两方面的原因：一方面，虽然Inception-In模式借鉴了FBCSP算法的分频段处理思路，但在Inception分支内部直接进行空间特征提取的过程中，损失了部分空间全局信息；另一方面，Inception-In结构具有相对更大的参数规模，这可能导致模型在有限样本条件下更容易出现过拟合现象。基于以上分析和实验验证，论文选择以Inception-After的方式布局时间卷积层与空间卷积层。
+\begin{table}[ht]
+  \centering
+  \caption{Inception-In、Inception-After实验结果对比}
+  \label{tab:ts-inception}
+  \begin{tabularx}{\textwidth}{CCC}
+    \toprule
+    Models & ACC(\%) & Kappa \\
+    \midrule
+    Inception-In & 63.31 & 0.51 \\
+    Inception-After & \textbf{75.35} & \textbf{0.70} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+文献\cite{schirrmeister2017deep,lawhern2018eegnet}指出，在EEG信号解码任务中，增加神经网络的深度有利于提升解码精度。瓶颈层（Bottleneck Layer）是深度神经网络中的常见结构\cite{he2016deep,huang2017densely}，通常用于对数据的降维和升维，由于采用了1\times1卷积进行操作，瓶颈层能够有效地减少神经网络的参数。不同于原始Inception模块中通过瓶颈层进行数据降维的操作，论文使用瓶颈层对数据进行升维操作，并将瓶颈层提取至卷积和池化操作之前，其目标为在深度维度上促进时空信息的融合。此外，论文在模型中引入了批量归一化层和Dropout层，用以加快网络训练速度，并避免小数据集下过早的过拟合。
+
+论文将改进后得到的基础模型称为BaseNet，其结构如图~\ref{fig:BaseNet}~所示。需要注意的是，Inception模块的层次数量和分支数量是影响其性能表现的两项可调的超参数。
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{Base-Net.pdf}
+    \caption{BaseNet结构}
+    \label{fig:BaseNet}
+\end{figure}
 
 \subsection{多尺度密集连接}
 
 \subsection{混合注意力svSE}
+
+根据神经科学先验知识，EEG信号中不同的通道和采样点具有不同的重要性，这为在MI-EEG分类领域应用注意力机制提供了理论依据，此外，将二维EEG信号视为一种由通道和时间两个维度构成的特殊图像，使得在MI-EEG分类领域能够迁移应用计算机视觉领域中的注意力机制。
+
+计算机视觉领域中经常使用的注意力机制有：
+
+(1) 通道注意力机制
+    
+不同于EEG信号中代表电极的通道，计算机视觉领域的通道代表图像的不同特征映射。通道注意力机制用于调整不同特征通道的重要性，通常会对每一个特征通道计算一些全局统计量，如均值、方差等，再将这些统计量经过非线性变换层进行编码，最后将编码向量进行转换并用于各个特征通道的加权。通道注意力机制的经典模型是压缩和激励网络（Squeeze-and-Excitation Networks，SENet）\cite{8578843}，其主要思想即是压缩（Squeeze）和激励（Excitation），SENet首先通过压缩操作获取全局上下文信息，然后通过激励操作对每个通道独立生成权重系数。具体而言，在压缩操作中，SENet在空间维度执行全局池化操作，将每个通道的特征图汇总成一个标量值；然后，在激励操作中，SENet通过一个全连接网络生成每个通道的权重系数，这些权重系数用于重新加权每个通道的特征图，以增强有用的特征并抑制无用的特征。
+
+在后文中，为避免与计算机视觉领域中的概念相混淆，在MI-EEG分类任务中，用深度来代表EEG信号的不同特征映射，而通道仍然代表电极。
+
+(2) 空间注意力机制
+    
+在计算机视觉领域中，空间注意力机制用于调整图片、视频等输入数据在空间维度中不同区域的重要性，通常会在深度维度上通过全局池化、卷积、特征融合等操作生成一个与特征图尺寸相同的注意力图，其值反映了空间维度中不同区域的注意力强度，最后，将注意力图进行转换，并用于原始特征图的加权。空间注意力机制的经典模型是空间变换网络（Spatial Transformer Network，STN）\cite{jaderberg2015spatial}，其具有对输入数据进行空间变换的能力，能够自动捕获重要区域的特征。
+
+(3) 混合注意力机制
+    
+混合注意力机制是一种集成多种注意力机制（如空间注意力、通道注意力及自注意力等）的方法，旨在更全面地捕获和整合输入数据在不同维度的有效信息。混合注意力机制通常会使用不同的注意力机制分别计算原始特征图的注意力权重，再将这些注意力权重进行融合，最后将融合后的注意力权重用于原始特征图的加权，或者将不同的注意力权重用于原始特征图加权，再将加权特征图进行融合。混合注意力机制的经典模型有卷积注意力机制模块（Convolutional Block Attention Module，CBAM）\cite{woo2018cbam}、空间与通道压缩与激励模块（Spatial and Channel Squeeze-and-Excitation，scSE）\cite{roy2018concurrent}等。
+    
+CBAM结合了通道注意力机制与空间注意力机制，其结构如图~\ref{fig:CBAM}~所示，输入特征图首先经过通道注意力模块进行加权，再通过空间注意力模块进行加权，从而得到最终结果。
+\begin{figure}
+    \centering
+    \includegraphics[width=0.6\textwidth]{CBAM.pdf}
+    \caption{CBAM结构}
+    \label{fig:CBAM}
+\end{figure}
+
+具体而言，在通道注意力模块中，输入特征图分别进行空间维度上的全局最大池化和全局平均池化，再将得到的统计值分别通过一个共享权重的全连接层，最后经过逐点加和与非线性变换得到通道注意力权重，用于输入特征图的加权。空间注意力模块的输入是经过通道注意力加权的特征图，首先在通道维度上进行全局最大池化和平均池化，再将得到的统计值在通道维度进行拼接，最后经过卷积降维与非线性变换得到空间注意力权重，与特征图加权后得到最终结果。CBAM的模块结构如图~\ref{fig:CBAM-Block}~所示。
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\textwidth]{CBAM-Block.pdf}
+  \caption{CBAM模块结构}
+  \label{fig:CBAM-Block}
+\end{figure}
+
+scSE同样结合了通道注意力机制与空间注意力机制，基于SENet提出了一种通道注意力模块（Channel Squeeze-and-Excitation，cSE）和一种空间注意力模块（Spatial Squeeze-and-Excitation，sSE），其结构如图~\ref{fig:scSE}~所示，不同于CBAM，scSE的两个子模块并行处理原始输入，分别在空间维度和通道维度对原始输入进行加权，最后再进行特征图的融合。具体而言，cSE模块中，原始输入依次经过了空间维度的全局平均池化，通道维度的卷积降维与升维，以及非线性变换，以得到通道注意力权重。sSE模块中，直接通过深度卷积在通道维度进行降维，再经过非线性变换以得到空间注意力权重。
+\begin{figure}
+    \centering
+    \includegraphics[width=0.6\textwidth]{scSE.pdf}
+    \caption{scSE结构}
+    \label{fig:scSE}
+\end{figure}
+
+注意力机制通过动态分配权重，使得模型能够聚焦于输入数据中的关键信息，削弱噪声的影响，混合注意力机制则结合了多种注意力机制的优点，从而能够更全面地捕获和整合不同维度的数据特征，并在许多情况下展现出优于单一注意力机制的性能。因此，论文将升维处理后的EEG信号视作具有深度信息的图像数据，采用结合了深度注意力和空间注意力的混合注意力机制对BaseNet进行改进。
+
+CBAM模块和scSE模块均为轻量级注意力模块，且均兼顾深度注意力和空间注意力，但scSE模块在参数数量上更具优势。与此同时，文献\cite{roy2018concurrent}研究发现scSE模块在语义分割任务上表现出色，特别是在与EEG信号拥有相似生理特性的医学图像的分割任务，其性能优于CBAM模块。基于以上理由，论文选择基于scSE模块进行改进，提出了一种新的注意力机制svSE（Separate Variance-Informed Spatial and Channel Squeeze-and-Excitation）模块，其结构如图~\ref{fig:svSE}~所示。
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{svSE.pdf}
+    \caption{svSE结构}
+    \label{fig:svSE}
+\end{figure}
+
+针对cSE模块，采用全局最大池化取代全局平均池化操作，用以突出显著特征。针对sSE模块，论文提出两种方式进行改进，并将两种方式所得的权重相结合以获取最终的输出：
+
+(1) 由CBAM模块的多维全局池化思想以及FBCNet模型的方差层设计\cite{mane2021fbcnet}得到启发，采用深度维度上的全局平均池化和全局方差计算操作代替原模块中的压缩操作，随后通过深度卷积对深度维度的特征图进行聚合，更好地表征EEG信号特性；
+
+(2) 考虑EEG信号中的时空权重低相关性，即空间特征权重代表电极重要程度，时间特征权重代表采样点重要程度，分两个维度提取特征，获取轴向注意力。对于空间维度，首先进行深度压缩操作，随后通过时间维度上的平均池化和最大池化得到两个特征图，通过1\times1卷积对这两个特征图进行融合。对于时间维度，进行空间维度上的卷积操作，以得到时序权重。最后，将空间权重与时序权重以克罗内克积（Kronecker）的方式相乘，恢复维度。
+
+此外，使用Softmax激活函数替换Sigmoid激活函数，旨在更好地利用全局信息。由此，整个svSE模块的公式如公式~\ref{eq:svse}~所示。
+\begin{equation}
+    cSE(x)=Maxpool(x)
+    \label{eq:svse}
+\end{equation}
+
+
+由于BaseNet的特征提取过程分为时间卷积和空间卷积两个阶段，scSE模块可采取以下三种引入方式：其一是在时间卷积层后引入；其二是在空间卷积层后引入；其三是同时在时间卷积层和空间卷积层之后引入。图~\ref{fig:att-Base}~展示了这三种引入scSE模块的方式，从左至右分别是时间卷积层后引入scSE模块、空间卷积层后引入scSE模块，以及在时间卷积和空间卷积层后均引入scSE模块。将这三种引入方式对应的模型分别简称为S-Temporal-BaseNet、S-Spatial-BaseNet、S-TS-BaseNet。
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{att-Base.pdf}
+  \caption{BaseNet引入注意力模块的方式}
+  \label{fig:att-Base}
+\end{figure}
+
+表~\ref{tab:scSE-BaseNet}~展示了S-Temporal-BaseNet、S-Spatial-BaseNet、S-TS-BaseNet三种模型在BCI Competition IV Dataset 2A\cite{tangermann2012review}数据集上的对比实验结果。实验采用固定的参数，表格中展示的准确率（Accuracy，ACC）和Kappa一致性系数（Kappa）指标为数据集中九位受试者的平均表现，标准差（Standard Deviation，SD）则为准确率的标准差。从准确率和一致性分析，S-ST-BaseNet模型的效果优于其他两种模型，与经验相符。此外，S-Temporal-BaseNet模型的效果优于S-Spatial-BaseNet模型，其原因可能在于，空间卷积层沿通道维度的卷积和沿深度维度的降维使得数据损失了部分特征，进而减弱了scSE模块提取关键特征权重的能力，而时间卷积层保留了大部分深度信息和通道信息，因此，在时间卷积层之后加入scSE模块能够帮助模型更好地捕捉深度和空间的特征。从标准差分析，S-TS-BaseNet模型的准确率波动幅度较小，对不同受试者的MI-EEG分类效果相对均衡，另外两种模型在不同受试者间的分类精度则存在较为明显的差异。实验数据显示，S-TS-BaseNet模型在增加了少量参数的情况下，取得了更好的效果，因此，论文采用同时在时间卷积层和空间卷积层之后引入scSE模块的方式，将这种结构的模型称为S-BaseNet。
+\begin{table}[ht]
+  \centering
+  \caption{scSE模块引入位置对比}
+  \label{tab:scSE-BaseNet}
+  \begin{tabularx}{\textwidth}{CCCCC}
+    \toprule
+    \makebox[0.2\textwidth][c]{Models} & \makebox[0.2\textwidth][c]{ACC(\%)} & \makebox[0.2\textwidth][c]{Kappa} & \makebox[0.2\textwidth][c]{SD} & \makebox[0.2\textwidth][c]{Parameters} \\
+    % Models & ACC(\%) & Kappa & SD & Parameters \\
+    \midrule
+    \makebox[0.2\textwidth][c]{S-Temporal-BaseNet} & \makebox[0.2\textwidth][c]{78.09} & \makebox[0.2\textwidth][c]{0.71} & \makebox[0.2\textwidth][c]{10.38} & \makebox[0.2\textwidth][c]{4702} \\
+    \makebox[0.2\textwidth][c]{S-Spatial-BaseNet} & \makebox[0.2\textwidth][c]{77.16} & \makebox[0.2\textwidth][c]{0.69} & \makebox[0.2\textwidth][c]{10.24} & \makebox[0.2\textwidth][c]{\textbf{4357}} \\
+    \makebox[0.2\textwidth][c]{S-TS-BaseNet} & \makebox[0.2\textwidth][c]{\textbf{78.55}} & \makebox[0.2\textwidth][c]{\textbf{0.71}} & \makebox[0.2\textwidth][c]{\textbf{9.46}} & \makebox[0.2\textwidth][c]{4765} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
 \section{基于LSTM和全局自注意力的网络分支}
 
