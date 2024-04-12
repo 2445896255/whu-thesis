@@ -1,14 +1,14 @@
 % chapter3 模型
 
-\chapter{基于双分支特征融合和注意力机制的运动想象脑电图分类网络构建}
+\chapter{基于特征融合和注意力机制的运动想象脑电图分类网络构建}
 
 论文前两个章节主要对运动想象脑电图(Motor Imagery Electroencephalography，MI-EEG)分类领域的基础知识以及相关研究做了一定的介绍，并且对该领域仍然存在的问题进行了分析。本章对这些问题进行进一步的探讨，针对这些问题提出了一种端到端的新模型HA-FuseNet：
 
-\section{基于双分支特征融合和注意力机制的端到端MI-EEG分类网络HA-FuseNet}
+\section{基于特征融合和注意力机制的端到端MI-EEG分类网络HA-FuseNet}
 
 原始的EEG信号通常为二维数据，包括通道（电极）和时间两个维度，具体而言，在EEG信号矩阵中，行代表分布在头皮不同位置的采样通道，列为时间序列数据，每个采样点对应一个时间戳下的生物电信号（通常为电压值），因此，一列数据就是一个特定时间点下所有通道同步采集到的电压读数。原始的EEG信号经过预处理之后，可以转换为时频图、头皮点位拓扑图等输入模式，尽管经过转换的输入相较于原始输入能够更全面地体现EEG信号的时频空信息，但这一过程往往需要具有神经科学背景的人工参与，在增加了人工成本同时，限制了模型自适应学习EEG信号中蕴含的复杂时空特征的能力，此外，复杂的预处理环节也增加了计算开销和应用成本，难以满足BCI系统即时响应的需求。因此，端到端网络在MI-EEG分类领域受到越来越多的重视，这类网络不经过或者仅仅经过很少的预处理步骤，而由深度学习算法自适应地提取关键特征并作出预测。
 
-为此，论文构建了基于双分支特征融合和注意力机制的端到端MI-EEG分类网络HA-FuseNet，其结构如图所示。HA-FuseNet有两条并行分支，分别是基于卷积神经网络搭建的分支与基于长短期记忆网络的分支。卷积神经网络分支基于Inception结构搭建，通过在Inception分支引入密集连接结构，进行多尺度特征提取，同时利用高级语义信息与浅层特征；通过引入反转瓶颈层，在深度维度上促进时空特征的融合；通过引入svSE混合注意力模块促进网络对重要特征的关注度，svSE模块采取时空特征分离的策略，同时利用了EEG信号的方差信息，以获得针对性的结果。长短期记忆网络分支用以获取时间域的长期依赖信息，并且加入了SCoT全局注意力模块获取时空域的全局上下文信息。双分支的特征通过C2R模块和R2C模块进行交互，并随后在深度维度进行融合，以在利用卷积神经网络提取到的局部信息的同时有效地建立全局依赖关系，从而获取更为精准的分类效果。
+为此，论文构建了基于特征融合和注意力机制的端到端MI-EEG分类网络HA-FuseNet，其结构如图所示。HA-FuseNet有两条并行分支，分别是基于卷积神经网络搭建的分支与基于长短期记忆网络的分支。卷积神经网络分支基于Inception结构搭建，通过在Inception分支引入密集连接结构，进行多尺度特征提取，同时利用高级语义信息与浅层特征；通过引入反转瓶颈层，在深度维度上促进时空特征的融合；通过引入svSE混合注意力模块促进网络对重要特征的关注度，svSE模块采取时空特征分离的策略，同时利用了EEG信号的方差信息，以获得针对性的结果。长短期记忆网络分支用以获取时间域的长期依赖信息，并且加入了SCoT全局注意力模块获取时空域的全局上下文信息。双分支的特征通过C2R模块和R2C模块进行交互，并随后在深度维度进行融合，以在利用卷积神经网络提取到的局部信息的同时有效地建立全局依赖关系，从而获取更为精准的分类效果。
 
 通过HA-FuseNet，可以更完整地获取MI-EEG信号的有效特征，提升分类效果。在下文中，将依次阐述论文的改进思路与构建方法。
 
@@ -109,6 +109,48 @@ EEG信号的空间分辨率较为不稳定，例如，在BCI Competition IV Data
 
 \subsection{多尺度密集连接}
 
+在构建BaseNet时，论文发现U-Net在处理MI-EEG分类任务时同样展现了一定的优势。由于EEG信号的特征相对简单，因此低级特征与高级语义信息都相对重要，U-Net因其特殊的跳跃连接结构有效地融合了这两种信息，然而，U-Net中通过解码器阶段将特征图恢复至原始空间尺寸的操作并非必要，因为在分类任务中，这种重建过程可能导致额外的计算负担且对分类性能的提升效果不明显。因此，论文从U-Net兼顾低级特征与高级语义信息的策略中得到启发，同时对不必要的特征图空间尺寸还原过程进行规避，以构建一个既能充分利用EEG信号中各级别特征信息，又具备高效计算能力的改进模型。
+
+Gao Huang等人于2016年提出了密集连接网络\cite{huang2017densely}（Dense Convolutional Network，DenseNet）。在ResNet的基础上，DenseNet提出了一种更为激进的连接模式：引入从任意层到后续层的直接连接，即密集连接（Dense Connection）。DenseNet的第 \(l\) 层接收所有前序特征图为输入，其输出为 \(x_l\)：
+\begin{equation}
+  x_l = H_l([x_0, x_1, ···, x_{l-1}])
+  \label{eq:dense-conn}
+\end{equation}
+其中，\([x_0, x_1, ···, x_{l-1}]\) 代表第 \(0, ···, l-1\) 层的输出特征图，\(H_l(·)\) 代表非线性转换复合函数，可能包括一系列的批量归一化、ReLU、池化及卷积操作。密集连接的结构如图~\ref{fig:denseBlock}~所示。
+\begin{figure}
+  \centering
+  \includegraphics[width=0.5\textwidth]{denseBlock.pdf}
+  \caption{密集连接结构}
+  \label{fig:denseBlock}
+\end{figure}
+
+在密集连接模块中，所有的前序特征图通过Concentrate在深度维度上连接在一起，因此，在一个密集连接模块中所有特征图的大小是相同的。DenseNet提出了Transition模块用于连接两个相邻的密集连接模块，并通过池化操作对特征图进行下采样，从而减小特征图的大小。
+
+通过密集连接的方式，网络中的每一层都能够访问并整合所有前序层提取出的特征信息，进而充分利用EEG信号中的低层特征细节和高层语义信息。相较于U-Net中的编码-解码结构，密集连接无需经历数据空间的重建过程，即可实现特征的有效复用。此外，DenseNet中的Transition模块也为实现特征图的下采样提供了思路。
+
+为了同时利用Inception模块多尺度并行特征提取和密集连接兼顾深层与浅层特征的优点，论文选择将DenseNet嵌入Inception模块中，替代原本的时间卷积核。为了简洁起见，下文称之为密集连接模块。
+
+原始的密集连接模块在计算机视觉图像分类任务中都取得了优秀的表现，在设计上，它考虑到了图像数据在空间维度上的局部相关性，然而，EEG信号的时空域局部相关性较低，需要对始密集连接模块的卷积核进行改造。研究指出\cite{lawhern2018eegnet}，当设计用于提取EEG特征的卷积核时，将时间卷积核长度设置为EEG信号采样率的一半，可以有效地捕获2Hz及以上频段的信号信息。因此，在处理EEG信号时，时间卷积核的长度应当依据EEG信号的实际采样率来灵活设定，以便提取不同频率成分的信号特征。
+
+将密集连接模块中的卷积核概念转化为针对时间序列的一维卷积（尽管在实现时仍采用二维卷积），为了更好地匹配EEG信号的采样特性及其内在频率成分，依据EEG信号的采样频率 \(sfreq\) 来动态调整位于Inception第 \(i\) 个分支上的密集连接模块的时间卷积核大小 \(kernel_i\)，具体公式如下：
+\begin{equation}
+    kernel_i = \left \lfloor \frac{sfreq}{2 \times i} \right \rfloor , \quad i \le 5
+    \label{eq:kernel_cal}
+\end{equation}
+其中，\(sfreq\) 是EEG信号的采样频率。这样设置卷积核大小是为了更全面地捕捉EEG信号中不同频率成分的特征信息，同时避免因卷积核大小过于接近而导致提取的特征之间重叠度过高。例如，当\(i=1\)时，卷积核大小将是采样率的一半，进而能够有效地捕获到2Hz及更高频段的EEG信号特征。
+
+由此，密集连接模块的非线性转换复合函数 \(H(·)\) 定义如公式~\ref{eq:dense-kernel}所示，
+\begin{equation}\label{eq:dense-kernel}
+    H(·) = BN + GELU + 1 \times kernel_i\;conv + Dropout 
+\end{equation}
+经过以上改进，新构建模型的结构如图~\ref{fig:incep-dense}~所示，将其命名为DI-Net。Dense-Inception module构成了时间卷积层，其内部的各个分支均由一系列改进版的Bottleneck Dense Block紧密堆叠而成，形成密集连接结构，用以同时获取浅层和深层的时间特征。每个分支提取的特征图在深度维度上进行聚合，并通过Transition模块进行深度压缩和特征整合，以进一步提升模型的表达能力和计算效率。
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{incep-dense.pdf}
+  \caption{DI-Net结构}
+  \label{fig:incep-dense}
+\end{figure}
+
 \subsection{混合注意力svSE}
 
 根据神经科学先验知识，EEG信号中不同的通道和采样点具有不同的重要性，这为在MI-EEG分类领域应用注意力机制提供了理论依据，此外，将二维EEG信号视为一种由通道和时间两个维度构成的特殊图像，使得在MI-EEG分类领域能够迁移应用计算机视觉领域中的注意力机制。
@@ -163,20 +205,23 @@ CBAM模块和scSE模块均为轻量级注意力模块，且均兼顾深度注意
     \label{fig:svSE}
 \end{figure}
 
-针对cSE模块，采用全局最大池化取代全局平均池化操作，用以突出显著特征。针对sSE模块，论文提出两种方式进行改进，并将两种方式所得的权重相结合以获取最终的输出：
+针对cSE模块，采用全局最大池化取代全局平均池化操作，用以突出显著特征，得到权重图\(Att_c \in \mathbb{R}^{D \times 1 \times 1}\)。针对sSE模块，论文提出两种方式进行改进，并将两种方式所得的权重相结合以获取最终的输出：
 
-(1) 由CBAM模块的多维全局池化思想以及FBCNet模型的方差层设计\cite{mane2021fbcnet}得到启发，采用深度维度上的全局平均池化和全局方差计算操作代替原模块中的压缩操作，随后通过深度卷积对深度维度的特征图进行聚合，更好地表征EEG信号特性；
+(1) 由CBAM模块的多维全局池化思想以及FBCNet模型的方差层设计\cite{mane2021fbcnet}得到启发，对于输入\(X \in \mathbb{R}^{D \times C \times T}\)，采用深度维度上的全局平均池化和全局方差计算操作代替原模块中的压缩操作，得到\(X_{pool} \in \mathbb{R}^{2 \times C \times T}\)，随后通过1\times1卷积对特征图在深度维度进行聚合，得到的权重图\(Att_v \in \mathbb{R}^{1 \times C \times T}\)，更好地表征EEG信号特性；
 
-(2) 考虑EEG信号中的时空权重低相关性，即空间特征权重代表电极重要程度，时间特征权重代表采样点重要程度，分两个维度提取特征，获取轴向注意力。对于空间维度，首先进行深度压缩操作，随后通过时间维度上的平均池化和最大池化得到两个特征图，通过1\times1卷积对这两个特征图进行融合。对于时间维度，进行空间维度上的卷积操作，以得到时序权重。最后，将空间权重与时序权重以克罗内克积（Kronecker）的方式相乘，恢复维度。
+(2) 考虑EEG信号中的时空权重低相关性，即空间特征权重代表电极重要程度，时间特征权重代表采样点重要程度，分两个维度提取特征，获取轴向注意力。对于输入\(X \in \mathbb{R}^{D \times C \times T}\)，在空间维度，首先使用1\times1卷积进行深度压缩操作获得\(X_{sf} \in \mathbb{R}^{1 \times C \times T}\)，随后通过时间维度上的平均池化和最大池化得到两个特征图，获得\(X_{spool} \in \mathbb{R}^{2 \times C \times 1}\)，通过1\times1卷积对这两个特征图进行融合，得到\(X_s \in \mathbb{R}^{1 \times C \times 1}\)。对于时间维度，进行空间维度上的卷积操作，以得到时序权重\(X_t \in \mathbb{R}^{1 \times 1 \times T}\)。最后，将空间权重与时序权重以克罗内克积（Kronecker）的方式相乘，恢复维度，得到最终的权重图\(Att_s \in \mathbb{R}^{1 \times C \times T}\)。
 
-此外，使用Softmax激活函数替换Sigmoid激活函数，旨在更好地利用全局信息。由此，整个svSE模块的公式如公式~\ref{eq:svse}~所示。
-\begin{equation}
-    cSE(x)=Maxpool(x)
-    \label{eq:svse}
+其中，\(D\)为输入的深度，\(C\)为空间（通道），\(T\)为时间。此外，使用Softmax激活函数替换Sigmoid激活函数，旨在更好地利用全局信息。由此，整个svSE模块的公式如公式~\ref{eq:svse}~所示，其中，\(\oplus\)为逐元素相加，\(\odot\)为逐元素相乘，\(X_{svSE}\)为加权后的输出。
+\begin{equation}\label{eq:svse}
+    \begin{aligned}
+        &Att_{vs}=Att_v \oplus Att_s \\
+        &X_1=Expand(Att_{vs}) \odot X \\
+        &X_2=Expand(Att_c) \odot X \\
+        &X_{svSE}=X_1 \oplus X_2
+    \end{aligned}
 \end{equation}
 
-
-由于BaseNet的特征提取过程分为时间卷积和空间卷积两个阶段，scSE模块可采取以下三种引入方式：其一是在时间卷积层后引入；其二是在空间卷积层后引入；其三是同时在时间卷积层和空间卷积层之后引入。图~\ref{fig:att-Base}~展示了这三种引入scSE模块的方式，从左至右分别是时间卷积层后引入scSE模块、空间卷积层后引入scSE模块，以及在时间卷积和空间卷积层后均引入scSE模块。将这三种引入方式对应的模型分别简称为S-Temporal-BaseNet、S-Spatial-BaseNet、S-TS-BaseNet。
+由于BaseNet的特征提取过程分为时间卷积和空间卷积两个阶段，svSE模块可采取以下三种引入方式：其一是在时间卷积层后引入；其二是在空间卷积层后引入；其三是同时在时间卷积层和空间卷积层之后引入。图~\ref{fig:att-Base}~展示了这三种引入svSE模块的方式，从左至右分别是时间卷积层后引入svSE模块、空间卷积层后引入svSE模块，以及在时间卷积和空间卷积层后均引入svSE模块。将这三种引入方式对应的模型分别简称为S-Temporal-BaseNet、S-Spatial-BaseNet、S-TS-BaseNet。
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{att-Base.pdf}
@@ -184,11 +229,11 @@ CBAM模块和scSE模块均为轻量级注意力模块，且均兼顾深度注意
   \label{fig:att-Base}
 \end{figure}
 
-表~\ref{tab:scSE-BaseNet}~展示了S-Temporal-BaseNet、S-Spatial-BaseNet、S-TS-BaseNet三种模型在BCI Competition IV Dataset 2A\cite{tangermann2012review}数据集上的对比实验结果。实验采用固定的参数，表格中展示的准确率（Accuracy，ACC）和Kappa一致性系数（Kappa）指标为数据集中九位受试者的平均表现，标准差（Standard Deviation，SD）则为准确率的标准差。从准确率和一致性分析，S-ST-BaseNet模型的效果优于其他两种模型，与经验相符。此外，S-Temporal-BaseNet模型的效果优于S-Spatial-BaseNet模型，其原因可能在于，空间卷积层沿通道维度的卷积和沿深度维度的降维使得数据损失了部分特征，进而减弱了scSE模块提取关键特征权重的能力，而时间卷积层保留了大部分深度信息和通道信息，因此，在时间卷积层之后加入scSE模块能够帮助模型更好地捕捉深度和空间的特征。从标准差分析，S-TS-BaseNet模型的准确率波动幅度较小，对不同受试者的MI-EEG分类效果相对均衡，另外两种模型在不同受试者间的分类精度则存在较为明显的差异。实验数据显示，S-TS-BaseNet模型在增加了少量参数的情况下，取得了更好的效果，因此，论文采用同时在时间卷积层和空间卷积层之后引入scSE模块的方式，将这种结构的模型称为S-BaseNet。
+表~\ref{tab:svSE-BaseNet}~展示了S-Temporal-BaseNet、S-Spatial-BaseNet、S-TS-BaseNet三种模型在BCI Competition IV Dataset 2A\cite{tangermann2012review}数据集上的对比实验结果。实验采用固定的参数，表格中展示的准确率（Accuracy，ACC）和Kappa一致性系数（Kappa）指标为数据集中九位受试者的平均表现，标准差（Standard Deviation，SD）则为准确率的标准差。从准确率和一致性分析，S-ST-BaseNet模型的效果优于其他两种模型，与经验相符。此外，S-Temporal-BaseNet模型的效果优于S-Spatial-BaseNet模型，其原因可能在于，空间卷积层沿通道维度的卷积使得数据损失了部分特征，进而减弱了svSE模块提取关键特征权重的能力，而时间卷积层保留了大部分深度信息和通道信息，因此，在时间卷积层之后加入svSE模块能够帮助模型更好地捕捉深度和空间的特征。从标准差分析，S-TS-BaseNet模型的准确率波动幅度较小，对不同受试者的MI-EEG分类效果相对均衡，另外两种模型在不同受试者间的分类精度则存在较为明显的差异。实验数据显示，S-TS-BaseNet模型在增加了少量参数的情况下，取得了更好的效果，因此，论文采用同时在时间卷积层和空间卷积层之后引入svSE模块的方式，将这种结构的模型称为S-BaseNet。
 \begin{table}[ht]
   \centering
-  \caption{scSE模块引入位置对比}
-  \label{tab:scSE-BaseNet}
+  \caption{svSE模块引入位置对比}
+  \label{tab:svSE-BaseNet}
   \begin{tabularx}{\textwidth}{CCCCC}
     \toprule
     \makebox[0.2\textwidth][c]{Models} & \makebox[0.2\textwidth][c]{ACC(\%)} & \makebox[0.2\textwidth][c]{Kappa} & \makebox[0.2\textwidth][c]{SD} & \makebox[0.2\textwidth][c]{Parameters} \\
@@ -203,8 +248,67 @@ CBAM模块和scSE模块均为轻量级注意力模块，且均兼顾深度注意
 
 \section{基于LSTM和全局自注意力的网络分支}
 
-\subsection{基于LSTM的基础网络}
+卷积神经网络倾向于模拟人类视觉系统，卷积层具有局部感受野，能够出色地捕获信号中的局部时空特征，但对于那些跨越较长时间跨度和空间分布的复杂交互信息，其建模能力受限。EEG信号作为随时间变化的信号，具有时间序列属性，长短期记忆网络能够捕获时间域的长期依赖，适合处理序列数据，但缺乏对空间信息进行提取的能力。为此，论文选择LSTM结合全局自注意力的方式，为模型加入时空全局信息。
 
-\subsection{全局自注意力AS-CoT}
+\subsection{全局自注意力SCoT}
+
+LSTM能够一定程度上捕获序列数据的长期依赖关系，但EEG信号在具有长距离时间依赖的同时具有全局空间特性，使得LSTM无法充分挖掘并整合全局时空域的依赖信息。因此，论文基于Non-local\cite{wang2018non}和Contextual Transformer（CoT）\cite{li2022contextual}这两种全局自注意力机制进行改进，针对EEG信号的特点提出了SCoT（Separate Contextual Transformer）模块，旨在更完整地捕捉EEG信号在时空域内的全局依赖关系，从而增强模型的全局建模能力。
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}{0.4\textwidth}
+      \includegraphics[width=\linewidth]{non-local.pdf}
+      \caption{Non-local结构}
+      \label{fig:non-local}
+    \end{subfigure}\qquad
+    \begin{subfigure}{0.4\textwidth}
+      \includegraphics[width=\linewidth]{cot.pdf}
+      \caption{CoT结构}
+      \label{fig:cot}
+    \end{subfigure}
+    \caption{两种全局自注意力}
+    \label{fig:self}
+\end{figure}
+
+(1) Non-local
+
+Non-local是将自注意力\cite{vaswani2017attention}应用于计算机视觉领域的一项经典模型，能够捕捉特征图中任意两个位置之间的依赖关系，其结构如图~\ref{fig:non-local}~所示。对于输入\(X \in \mathbb{R}^{C \times H \times W}\)，首先通过三个1\times1卷积将通道数量由\(C\)压缩为\(\frac{C}{2}\)，分别得到代表查询（Query）、键（Key）和值（Value）矩阵的三个特征图\(X_\theta\)、\(X_\phi\)和\(X_g\)。随后对\(X_\theta\)、\(X_\phi\)、\(X_g\)进行展平（Flatten），并通过点积操作计算\(X_\theta\)与\(X_\phi\)的相似度矩阵\(S\)，该矩阵代表输入特征图中各个位置之间的联系。接着，使用Softmax函数对相似度矩阵\(S\)进行归一化，使得其转化为概率分布，并与值矩阵\(X_g\)相乘，得到结果矩阵\(Y \in \mathbb{R}^{\frac{C}{2} \times H \times W}\)，最后，通过1\times1卷积恢复\(Y\)的维度至与\(X\)相同，以逐元素相加的方式得到加权后的结果。Non-local通过直接计算两个位置之间的远程依赖关系，能够获取全局自注意力，但在数据量较大的情况下，存在计算量偏大的问题。
+
+(2) CoT
+
+CoT考虑到Non-local忽略了相邻键上下文信息的问题，提出了一种将上下文信息挖掘能力集成入自注意力机制中的方式，其结构如图~\ref{fig:cot}~所示。对于输入\(X \in \mathbb{R}^{C \times H \times W}\)，CoT的改动主要在于使用3\times3卷积获取特征图的静态上下文信息，将其作为键矩阵\(K\)，同时，通过1\times1卷积获取到值矩阵\(V\)，直接获取了查询矩阵\(Q\)，然后对\(K\)和\(Q\)进行深度维度的聚合，并通过两个连续的1\times1卷积获取注意力权重图\(A\)，通过注意力权重图\(A\)和值矩阵\(V\)相乘获取特征图的动态上下文信息，最后将静态上下文信息和动态上下文信息进行了融合。
+
+对于运动想象MI-EEG分类任务来说，问题在于EEG信号的特性：EEG信号的时域和空域上具有较低的局部相关性；在空域上，尽管相邻的电极具有空间相关性，但在EEG原始输入中，相邻的电极未必排列为相邻的通道，因此，在端到端网络的情况下，空域内具有较低的局部相关性；在时域上，EEG信号具有局部相关性，即相邻的采样点往往蕴含相似的信息。因此，Non-local模块和CoT模块无法直接迁移至运动想象MI-EEG分类任务中：Non-local模块能够计算任意两个位置之间的远程依赖关系，但在较大的数据量下，其计算代价高昂；而CoT模块则是基于图像数据的局部相关性，将局部上下文信息引入了自注意力机制中，并通过卷积操作减少了计算量。论文借鉴Non-local和CoT的思想，提出了SCoT模块。
+
+综合考量EEG信号的时空特性与Non-local、CoT各自的特点，
+论文提出的SCoT注意力模块采取了时空域分步计算全局自注意力的策略，具体来说，针对空域中局部相关性较弱且数据规模有限的情况，对Non-local模块进行改良以适应空间自注意力计算；而对于具有强局部相关性且数据规模较大的时域信息，基于CoT进行改进以计算时间自注意力。SCoT的结构如图~\ref{fig:gsa}~所示。
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{gsa.pdf}
+    \caption{SCoT结构}
+    \label{fig:gsa}
+\end{figure}
+
+SCoT分两个过程计算EEG信号的全局时空注意力，首先计算空域上的空间自注意力，使用空间自注意力对输入进行加权后，再基于加权数据计算时空域自注意力。空间自注意力能够为重要的电极（通道）分配更多的注意力，在局部相关性较弱的情况下突出不同通道的相对重要性。时空域自注意力能够充分利用时间序列数据中的局部相关性，以及已经由空间自注意力加权强化过的空间特征信息，从而更加精细而全面地捕获EEG信号中的全局时空依赖关系。此外，两个过程的计算也有利于降低计算的复杂度。
+
+SCoT模块计算注意力的整体流程如公式~\ref{eq:scot}~所示，其中，\(X\)为EEG信号输入，\(C\)为通道，\(T\)为时间，\(Att_s\)为空间自注意力模块，\(Att_{st}\)为时空自注意力模块。
+\begin{equation}
+    SCoT(X)=Att_{st}(Att_s(X)), \; X \in \mathbb{R}^{1 \times C \times T}
+    \label{eq:scot}
+\end{equation}
+
+在空间自注意力模块中，首先进行混合池化操作，对输入进行转换：
+\begin{equation}
+    X'=MaxPool(X)+AvgPool(X),\;X' \in \mathbb{R}^{2 \times C \times T}
+    \label{eq:scots1}
+\end{equation}
+EEG信号具有低信噪比的特性，混杂了大量的噪声和干扰成分，通过结合最大池化操作和平均池化这两种操作，能够能够在最大程度保留EEG信号中关键特征的同时，对噪声起到一定的抑制作用，从而在不同的特征信息之间取得平衡。在取得池化表示
+
+\subsection{基于LSTM和SCoT的网络}
+
+LSTM属于循环神经网络，能够利用当前时间步及其之前的信息，并且解决了RNN在处理长期依赖问题时存在的梯度消失和梯度爆炸问题。LSTM通过单元状态存储和更新信息，使得模型能够记住历史信息，并且有选择地进行遗忘或者更新；通过门控机制（输入门、遗忘门、输出门），LSTM能够对信息的流动进行有效的控制，从而保留和传递长距离信息，提升对长期依赖关系的建模能力。
+
+LSTM用于处理形如\(Time \times Features\)的二维序列数据，其中第一个维度为时间，第二个维度为特征数。由于需要使用历史信息，LSTM无法进行并行计算，因此需要对于EEG原始输入\(X \in \mathbb{R}^{C \times T}\)进行一定的处理，以平衡计算时间，同时与卷积神经网络融合。
+
+
 
 \section{基于GhostNet和稀疏自注意力的网络轻量化}
