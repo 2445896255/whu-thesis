@@ -1,3 +1,56 @@
 % chapter4 实验
 
 \chapter{实验结果分析与模型评估}
+
+\section{实验环境}
+
+论文构建的HA-FuseNet是在实验室搭建的服务器上进行搭建和训练的，所用的软/硬件环境如表~\ref{tab:env}~所示：
+\begin{table}[h]
+    \centering
+    \caption{实验环境}
+    \label{tab:env}
+    \begin{tabularx}{0.8\textwidth}{>{\centering\arraybackslash\hsize=0.6\hsize}X >{\centering\arraybackslash\hsize=1.4\hsize}X}
+    \toprule
+    软/硬件名称 & 型号/版本 \\
+    \midrule
+    操作系统 & Ubuntu 20.04.6 LTS  \\
+    CPU & Intel(R) Xeon(R) Gold 5218R CPU @ 2.10GHz \\
+    GPU & NVIDIA GeForce RTX 3090 \\
+    内存 & 128GB \\
+    显存 & 24GB \\
+    CUDA & 11.8 \\
+    Python & 3.11.5 \\
+    Pytorch & 2.0.1 \\
+    MNE & 1.6.0 \\
+    Numpy & 1.26.3 \\
+    \bottomrule
+    \end{tabularx}
+\end{table}
+
+\section{实验准备}
+
+\subsection{运动想象脑电图数据集}
+
+运动想象脑电图是通过脑电采集设备从头皮上获取的人类大脑的神经元活动时产生的生物电电位信号，能够反映大脑皮层和深层结构的功能状态及其异常变化。脑电图信号采集的整体流程如下：
+
+(1) 采集准备：根据国际10-20标准导联系统或其他标准定位方案，将电极安放在被试头皮的不同位置，以捕获不同脑区的电位信号。电极通常通过电极帽或电极盘固定，以确保位置的稳定和正确。由于人体脑电信号强度微弱，通常会通过与脑电采集设备相连的放大器进行放大和记录；
+
+(2) 记录信号：当大脑神经元兴奋或抑制时，会产生微弱的电位变化，这些电位变化传到到头皮表面，形成可测量的电压差，由脑电采集系统进行捕获和放大。脑电采集系统通常以每秒进行\(N\)次采集的方式工作，即采集频率为\(N\)Hz；
+
+(3) 数字化：根据脑电采集系统的设置，对被捕获的脑电信号进行一定的处理，包括模数转换器（Analog to Digital Converter，ADC）转化为数字信号。
+
+在临床和科研应用中，脑电图信号因其非侵入性、实时监测性对大脑功能活动的敏感性等特点，已被广泛应用在大脑解码领域。运动想象领域有多个脑电图信号的公开数据集，论文主要选取BCI Competition IV Dataset 2A
+
+\subsection{数据预处理}
+
+\subsection{评价指标与参数配置}
+
+\section{实验设计}
+
+\section{超参数优化实验}
+
+\section{BCI Competition IV Dataset 2A数据集上的对比试验}
+
+\section{BCI Competition IV Dataset 2B数据集上的对比试验}
+
+\section{各模块消融实验}

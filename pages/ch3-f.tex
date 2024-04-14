@@ -178,14 +178,14 @@ CBAM结合了通道注意力机制与空间注意力机制，其结构如图~\re
     \caption{CBAM结构\cite{woo2018cbam}}
     \label{fig:CBAM}
 \end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.6\textwidth]{CBAM-Block.pdf}
+    \caption{CBAM模块结构\cite{woo2018cbam}}
+    \label{fig:CBAM-Block}
+  \end{figure}
 
 具体而言，在通道注意力模块中，输入特征图分别进行空间维度上的全局最大池化和全局平均池化，再将得到的统计值分别通过一个共享权重的全连接层，最后经过逐点加和与非线性变换得到通道注意力权重，用于输入特征图的加权。空间注意力模块的输入是经过通道注意力加权的特征图，首先在通道维度上进行全局最大池化和平均池化，再将得到的统计值在通道维度进行拼接，最后经过卷积降维与非线性变换得到空间注意力权重，与特征图加权后得到最终结果。CBAM的模块结构如图~\ref{fig:CBAM-Block}~所示。
-\begin{figure}
-  \centering
-  \includegraphics[width=0.6\textwidth]{CBAM-Block.pdf}
-  \caption{CBAM模块结构\cite{woo2018cbam}}
-  \label{fig:CBAM-Block}
-\end{figure}
 
 scSE同样结合了通道注意力机制与空间注意力机制，基于SENet提出了一种通道注意力模块（Channel Squeeze-and-Excitation，cSE）和一种空间注意力模块（Spatial Squeeze-and-Excitation，sSE），其结构如图~\ref{fig:scSE}~所示，不同于CBAM，scSE的两个子模块并行处理原始输入，分别在空间维度和通道维度对原始输入进行加权，最后再进行特征图的融合。具体而言，cSE模块中，原始输入依次经过了空间维度的全局平均池化，通道维度的卷积降维与升维，以及非线性变换，以得到通道注意力权重。sSE模块中，直接通过深度卷积在通道维度进行降维，再经过非线性变换以得到空间注意力权重。
 \begin{figure}
