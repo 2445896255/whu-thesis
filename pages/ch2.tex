@@ -215,7 +215,7 @@ Dropout是深度神经网络中常用的正则化技术，主要用于缓解神�
 原始的RNN模型中的循环连接使得梯度在进行传播时容易呈现指数级衰减或增长的问题，即容易出现梯度消失或梯度爆炸现象，从而导致模型难以训练，难以捕捉到序列数据中的长期依赖关系。长短期记忆网络（Long Short-Term Memory，LSTM）针对这些问题进行了改进，成为现阶段被广泛使用的基于RNN架构的模型之一。LSTM引入了门控机制，通过一系列门控单元控制信息的存储、读取和更新，从而实现对长期和短期信息的有效管理。LSTM的主要组成部分包括单元状态（Cell State）、遗忘门（Forget Gate）、输入门（Input Gate）和输出门（Output Gate），LSTM一个元胞的结构如图~\ref{fig:lstm}~所示，其中，\(h_{t-1}\)表示前一时间步的隐藏状态，\(c_{t-1}\)表示前一步的单元状态，\(x_t\)表示当前时间步的输出，\(f_t\)表示忘记门，\(i_t\)表示输入门，\(o_t\)表示输出门，\(\sigma\)为Sigmoid激活函数，代表门控的程度，\(tanh\)为双曲正切激活函数，用于更新细胞状态。多个元胞前后相连，就组成了LSTM。
 \begin{figure}
     \centering
-    \includegraphics[width=0.8\textwidth]{lstm.png}
+    \includegraphics[width=0.7\textwidth]{lstm.png}
     \caption{LSTM元胞结构}
     \label{fig:lstm}
 \end{figure}
