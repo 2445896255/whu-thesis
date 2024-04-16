@@ -75,3 +75,23 @@ Inception模块的层次数量和分支数量是影响其性能表现的两项�
 目前的大多数迁移都是做二分类 四分类比较少
 
 奈奎斯特-香农（Nyquist–Shannon）采样定理指出，如果一个系统以超过信号最高频率至少两倍的速率对模拟信号进行均匀采样，那么原始模拟信号就能从采样产生的离散值中完全恢复
+
+
+\begin{table}[ht]
+  \centering
+  \caption{轻量化卷积模块实验结果对比}
+  \label{tab:lite}
+  \begin{tabularx}{\textwidth}{CCCC}
+    \toprule
+    Models & Paramters & FLOPs & ACC(\%) \\
+    \midrule
+    GAS/SAS(0.5) & 7.31K & 130.37M & 74.61\\
+    GAS/SAS(0.4) & 7.83K & 143.44M & 73.80\\
+    GAS/SAS(0.6) & \textbf{6.80K} & \textbf{117.75M} & \textbf{74.61}\\
+    SG(0.5) & 7.27K & 129.93M & 73.26\\
+    SG(0.4) & 7.67K & 139.73M & 72.22\\
+    SG(0.6) & 7.27K & 129.93M & 73.00\\
+    Origin & 29.99K & 690.37M & \textbf{75.62}\\
+    \bottomrule
+  \end{tabularx}
+\end{table}
