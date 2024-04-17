@@ -95,3 +95,156 @@ Inception模块的层次数量和分支数量是影响其性能表现的两项�
     \bottomrule
   \end{tabularx}
 \end{table}
+
+\begin{sidewaystable}[ht]
+	\caption{HA-FuseNet与其他模型在测试集上的被试内实验结果对比（Acc/SD）}
+	\centering
+    \label{tab:2acomparein1}
+	\begin{tabularx}{\textwidth}{CCCCCCCCCCCC}
+        \toprule
+        Models & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & Average & SD \\
+        \midrule
+        ShallowConvNet \\
+        DeepConvNet \\
+        EEGNet \\
+        EEGConformer \\
+        EEGInception \\
+        LMDA-Net \\
+        \bottomrule
+	\end{tabularx}
+\end{sidewaystable}
+
+
+\begin{table}[ht]
+  \centering
+  \caption{HA-FuseNet与其他模型在测试集上的被试内实验结果对比（Acc）}
+  \label{tab:2acomparein}
+  \begin{tabularx}{\textwidth}{CCCCCCC}
+    \toprule
+    Subject & \makecell[c]{Shallow\\ConvNet} & \makecell[c]{Deep\\ConvNet} & EEGNet & \makecell[c]{EEG\\Inception} & \makecell[c]{EEG\\Conformer} & \makecell[c]{HA-\\FuseNet} \\
+    \midrule
+    1 & 85.07 & 83.68 & 78.13 & 71.18 & 67.71 \\
+    2 & 61.46 & 65.28 & 63.54 & 48.26 & 55.21 \\
+    3 & 94.10 & 90.63 & 82.30 & 82.29 & 84.72 \\
+    4 & 73.26 & 69.44 & 60.42 & 55.90 & 53.82 \\
+    5 & 73.26 & 76.04 & 71.88 & 64.58 & 75.69 \\
+    6 & 57.29 & 64.58 & 59.03 & 52.43 & 53.47 \\
+    7 & 86.81 & 89.93 & 72.92 & 75.00 & 69.10 \\
+    8 & 89.93 & 79.51 & 68.06 & 85.41 & 71.53 \\
+    9 & 85.42 & 73.61 & 66.67 & 73.61 & 58.68 \\
+    \midrule
+    Average \\
+    SD \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[ht]
+  \centering
+  \caption{HA-FuseNet与其他模型在测试集上的被试间实验结果对比（Acc）}
+  \label{tab:2acomparecross}
+  \begin{tabularx}{\textwidth}{CCCCCC}
+    \toprule
+    Models & 1 & 2 & 3 & 4 & 5\\
+    \midrule
+    ShallowConvNet \\
+    DeepConvNet \\
+    EEGNet \\
+    EEGResNet \\
+    EEGInception \\
+    EEGConformer \\
+    LMDA-Net \\
+    \midrule 
+    HA-FuseNet \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\begin{table}[ht]
+  \centering
+  \caption{HA-FuseNet与其他模型在测试集上的被试间实验结果对比（Acc）}
+  \label{tab:2acomparecross}
+  \begin{tabularx}{\textwidth}{CCCCCC}
+    \toprule
+    Models & 1 & 2 & 3 & 4 & 5\\
+    \midrule
+    ShallowConvNet \\
+    DeepConvNet \\
+    EEGNet \\
+    EEGResNet \\
+    EEGInception \\
+    EEGConformer \\
+    LMDA-Net \\
+    \midrule 
+    HA-FuseNet \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+\begin{table}[ht]
+  \centering
+  \caption{HA-FuseNet与其他模型在测试集上的被试内实验结果对比（Acc）}
+  \label{tab:2acomparein}
+  \begin{tabularx}{\textwidth}{CCCCCCC}
+    \toprule
+    Subject & \makecell[c]{Shallow\\ConvNet} & \makecell[c]{Deep\\ConvNet} & EEGNet & \makecell[c]{EEG\\Inception} & \makecell[c]{EEG\\Conformer} & \makecell[c]{HA-\\FuseNet} \\
+    \midrule
+    1 & 85.07 & 83.68 & 78.13 & 71.18 & 67.71 \\
+    2 & 61.46 & 65.28 & 63.54 & 48.26 & 55.21 \\
+    3 & 94.10 & 90.63 & 82.30 & 82.29 & 84.72 \\
+    4 & 73.26 & 69.44 & 60.42 & 55.90 & 53.82 \\
+    5 & 73.26 & 76.04 & 71.88 & 64.58 & 75.69 \\
+    6 & 57.29 & 64.58 & 59.03 & 52.43 & 53.47 \\
+    7 & 86.81 & 89.93 & 72.92 & 75.00 & 69.10 \\
+    8 & 89.93 & 79.51 & 68.06 & 85.41 & 71.53 \\
+    9 & 85.42 & 73.61 & 66.67 & 73.61 & 58.68 \\
+    \midrule
+    Average \\
+    SD \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[ht]
+  \centering
+  \caption{HA-FuseNet与其他模型在测试集上的被试内实验结果对比（Acc）}
+  \label{tab:2acomparecross}
+  \begin{tabularx}{\textwidth}{CCCCCC}
+    \toprule
+    Models & 1 & 2 & 3 & 4 & 5\\
+    \midrule
+    ShallowConvNet \\
+    DeepConvNet \\
+    EEGNet \\
+    EEGResNet \\
+    EEGInception \\
+    EEGConformer \\
+    LMDA-Net \\
+    \midrule 
+    HA-FuseNet \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+\begin{table}[ht]
+  \centering
+  \caption{HA-FuseNet与其他模型在测试集上的被试内实验结果对比（Acc）}
+  \label{tab:2acomparecross1}
+  \begin{tabularx}{\textwidth}{CCCCCC}
+    \toprule
+    Models & 1 & 2 & 3 & 4 & 5\\
+    \midrule
+    ShallowConvNet \\
+    DeepConvNet \\
+    EEGNet \\
+    EEGResNet \\
+    EEGInception \\
+    EEGConformer \\
+    LMDA-Net \\
+    \midrule 
+    HA-FuseNet \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+scot-before

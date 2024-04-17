@@ -9,7 +9,7 @@
     \centering
     \caption{实验环境}
     \label{tab:env}
-    \begin{tabularx}{0.8\textwidth}{>{\centering\arraybackslash\hsize=0.6\hsize}X >{\centering\arraybackslash\hsize=1.4\hsize}X}
+    \begin{tabularx}{\textwidth}{>{\centering\arraybackslash\hsize=0.6\hsize}X >{\centering\arraybackslash\hsize=1.4\hsize}X}
     \toprule
     软/硬件名称 & 型号/版本 \\
     \midrule
@@ -68,7 +68,7 @@ session采集的过程如图~\ref{fig:2asession}~所示，在采集开始时，�
     \centering
     \caption{2A事件类型列表}
     \label{tab:2aevent}
-    \begin{tabularx}{0.8\textwidth}{>{\centering\arraybackslash\hsize=0.6\hsize}X >{\centering\arraybackslash\hsize=1.4\hsize}X}
+    \begin{tabularx}{\textwidth}{CC}
     \toprule
     事件类型 & 描述 \\
     \midrule
@@ -196,7 +196,7 @@ Kappa一致性系数用于衡量模型预测结果与真实标签之间的一致
 \end{equation}
 Kappa系数的范围在-1至1区间内，通常大于0，Kappa值越大，表明一致性程度越高，当Kappa值位于[0.61,0.80]区间时，表示预测与真实具有高度的一致性。
 
-标准差用于衡量模型在不同被试之间的稳定性能力，其计算公式如下：
+标准差用于衡量模型在不同被试之间的稳定性能力，其值越小，表明不同被试的准确率越相近，模型的稳定性越好。其计算公式如下：
 \begin{equation}
     SD=\sqrt{\frac{1}{N-1}  \sum_{i=1}^{N}(x_i-\bar{x} )^{2} } 
     \label{eq:sd}
@@ -326,7 +326,7 @@ ShuffleNetV2问题在于，进行Channel Split时，通常是对特征图进行�
       \bottomrule
     \end{tabularx}
 \end{table}
-数据显示，Ghost模块具有最优的轻量化效果，而SG模块取得了最优的性能，甚至超出了原始密集连接模块。这可能是增加卷积层的深度有利于对特征的拟合，较小的参数规模也降低了过拟合的风险。此外，MobileNet证实在CPU上，计算量不变的情况下增加网络的层数有助于命中缓存，从而增加CPU上的计算速度。
+数据显示，Ghost模块具有最优的轻量化效果，而SG模块取得了最优的性能，甚至超出了原始密集连接模块。这可能是增加卷积层的深度有利于对特征的拟合，而较小的参数规模降低了过拟合的风险。此外，MobileNet证实在CPU上，计算量不变的情况下增加网络的层数有助于命中缓存，从而增加CPU上的计算速度。
 
 实验证明，相较于原始密集连接模块，SG模块的轻量化效果明显；相较于Ghost模块、GAS/SAS模块和原始密集连接模块，SG模块取得了更优的性能。这证明了SG模块的有效性。
 
@@ -336,15 +336,425 @@ LS-Net中，SCoT模块引入LSTM的方式，以及LS-Net与DIS-Net进行特征�
 
 \paragraph{SCoT引入LSTM的方式}
 
+SCoT引入LSTM的方式有两种：在LSTM Layer之前，称之为SCoT-before；在LSTM Layer之后，称之为SCoT-After。为了比较两种方式的优劣，论文在2A数据集上使用HA-FuseNet进行实验，在实验中，固定了相关的超参数。
+\begin{table}[ht]
+    \centering
+    \caption{SCoT引入LSTM实验结果对比}
+    \label{tab:ls}
+    \begin{tabularx}{\textwidth}{CCCC}
+      \toprule
+      Models & ACC(\%) & Kappa & SD \\
+      \midrule
+      SCoT-Before & 74.25 & 0.65 & 12.49 \\
+      SCoT-After & \textbf{75.66} & \textbf{0.67} & \textbf{9.71} \\
+      \bottomrule
+    \end{tabularx}
+\end{table}
+
+实验数据显示，SCoT-After具有更高的准确率、一致性，以及更低的标准差，这证实了在LSTM Layer之后引入SCoT的方式具有更好的性能。这可能是因为，相较于前加权，后加权的方式直接对经过特征提取的特征图进行加权，加权后的特征图不再继续通过网络，从而更好地突出重要特征，促使模型学习到数据中更为重要的部分。
+
 \paragraph{特征融合的方式}
 
-LS-Net的特征图有两种方式与DIS-Net的特征图进行融合，分别是
+LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
+
+(1) CNN可以并行计算，LSTM由于按时间序列依次对数据进行计算，使得自身无法并行计算，因此在计算效率上低于CNN。如果使用串联方式，会导致LS-Net与DIS-Net无法并行计算，降低HA-FuseNet的计算效率。需要说明的是，论文通过下采样的方式提高LS-Net的计算效率。
+
+(2) LS-Net着重提取全局特征，DIS-Net着重提取局部特征，直接以串联方式进行级联容易出现对彼此提取的特征造成干扰的情况，不利于提高特征提取的准确性。
+
+在并行级联中，LS-Net的特征图有两种方式与DIS-Net的特征图进行融合，分别是在空间卷积层之前进行融合（LS-Before），和在空间卷积层之后进行融合（LS-After）。LS-Before意味着将LS-Net的输出特征图以（通道，时间）的特征形式送入空间卷积层，由空间卷积层进行进一步的特征提取，LS-After意味着将LS-Net的输出特征图以（深度，时间）的特征形式送入空间卷积层，将隐含层视为深度维度输出，不再进行空间特征提取。二种不同方式的示意图如图~\ref{fig:fuse}~所示。
+\begin{figure}
+    \centering
+    \includegraphics[width=0.6\textwidth]{fuse.pdf}
+    \caption{不同融合方式}
+    \label{fig:fuse}
+\end{figure}
+
+论文在2A数据集上使用HA-FuseNet进行实验，对这两种方式的效果予以验证。实验中对相关超参数进行了固定，从而只关注不同融合方式对性能造成的影响，表~\ref{tab:fuse}~对实验数据进行了展示，其中，准确率与Kappa系数为九位被试的平均表现。
+\begin{table}[ht]
+    \centering
+    \caption{轻量化卷积模块实验结果对比}
+    \label{tab:fuse}
+    \begin{tabularx}{\textwidth}{CCCC}
+      \toprule
+      Models & ACC(\%) & Kappa & SD \\
+      \midrule
+      LS-Before & \textbf{75.66} & \textbf{0.67} & \textbf{9.71} \\
+      LS-After & 74.54 & 0.66 & 11.94 \\
+      \bottomrule
+    \end{tabularx}
+\end{table}
+
+数据显示，LS-Before具有更高的准确率和一致性，且不同被试的准确率差异较小，这可能是因为LS-Net主要进行了时序特征提取与全局时空自注意力加权两个操作，对空间维度的操作较缺乏，因此需要由空间卷积层进行空间维度的特征提取，以获得更丰富的特征表达。论文采用LS-Before的方式进行LS-Net和DIS-Net的特征融合。
 
 \subsection{各模块消融实验}
 
+为了探究论文所提出的各个模块的有效性，并研究不同模块对HA-FuseNet分类效果的影响，论文针对这些模块进行消融实验，即按照模型构建的顺序，从基准模型开始，逐步对新增模块后的模型效果进行实验验证。
+
+\begin{table}[ht]
+    \centering
+    \caption{HA-FuseNet各模块消融实验结果对比}
+    \label{tab:ab}
+    \begin{tabularx}{\textwidth}{CCCC}
+      \toprule
+      Models & ACC(\%) & Kappa & SD \\
+      \midrule
+      Inception \\
+      Base-Inception \\
+      BI+Dense \\
+      DI+svSE \\
+      DIS+LSTM \\
+      DIS+LSTM+SCoT \\
+      DIS+LS+SG \\
+      \bottomrule
+    \end{tabularx}
+\end{table}
+
 \subsection{BCI Competition IV Dataset 2A数据集上的对比试验}
 
+\begin{table}[ht]
+    \centering
+    \caption{HA-FuseNet与其他模型在测试集上的被试内实验结果对比（Acc）}
+    
+    \begin{subtable}[ht]{\textwidth}
+      \centering
+    %   \caption{子表a}
+      \label{tab:2acompareina}
+      \begin{tabularx}{\textwidth}{CCCCCC}
+        \toprule
+        Models & 1 & 2 & 3 & 4 & 5\\
+        \midrule
+        ShallowConvNet & 85.07 & 61.46 & 94.10 & 73.26 & 73.26 \\
+        DeepConvNet & 83.68 & 65.28 & 90.63 & 69.44 & 76.04 \\
+        EEGNet & 78.13 & 63.54 & 82.30 & 60.42 & 71.88 \\
+        EEGResNet & 69.10 & 40.97 & 63.89 & 49.65 & 45.49 \\
+        EEGInception & 71.18 & 48.26 & 82.29 & 55.90 & 64.58 \\
+        EEGConformer & 67.71 & 55.21 & 84.72 & 53.82 & 75.69 \\
+        LMDA-Net & 86.46 & 60.46 & 90.97 & 59.02 & 69.10 \\
+        \midrule 
+        HA-FuseNet \\
+        \bottomrule
+      \end{tabularx}
+    \end{subtable}
+    \begin{subtable}[ht]{\textwidth}
+      \centering
+    %   \caption{子表b}
+      \label{tab:2acompareinb}
+      \begin{tabularx}{\textwidth}{CCCCCCC}
+        \toprule
+        Models & 6 & 7 & 8 & 9 & Average \\
+        \midrule
+        ShallowConvNet & 57.29 & 86.81 & 89.93 & 85.42 & 78.52\\
+        DeepConvNet & 64.58 & 89.93 & 79.51 & 73.61 & 76.97 \\
+        EEGNet & 59.03 & 72.92 & 68.06 & 66.67 & 69.21 \\
+        EEGResNet & 42.36 & 54.51 & 61.11 & 64.93 & 54.69 \\
+        EEGInception & 52.43 & 75.00 & 85.41 & 73.61 & 70.72 \\
+        EEGConformer & 53.47 & 69.10 & 71.53 & 58.68 & 65.55 \\
+        LMDA-Net & 55.90 & 90.28 & 81.94 & 76.04 & 74.50 \\
+        \midrule 
+        HA-FuseNet \\
+        \bottomrule
+      \end{tabularx}
+    \end{subtable}
+    
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \caption{HA-FuseNet与其他模型在测试集上的被试内实验结果对比（Kappa/SD）}
+    \label{tab:2acompareinsd}
+    \begin{tabularx}{\textwidth}{CCC}
+      \toprule
+      Models & Kappa & SD \\
+      \midrule
+      ShallowConvNet & 0.71 & 12.15\\
+      DeepConvNet & 0.69 & 9.22 \\
+      EEGNet & 0.60 & 7.40 \\
+      EEGResNet & 0.36 & 9.94 \\
+      EEGInception & 0.62 & 10.74 \\
+      EEGConformer & 0.53 & 10.33 \\
+      LMDA-Net & 0.65 & 13.01 \\
+      \midrule 
+      HA-FuseNet \\
+      \bottomrule
+    \end{tabularx}
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \caption{数据增强后HA-FuseNet与其他模型在测试集上的被试内实验结果对比（Acc）}
+    
+    \begin{subtable}[ht]{\textwidth}
+      \centering
+    %   \caption{子表a}
+      \label{tab:2acompareaga}
+      \begin{tabularx}{\textwidth}{CCCCCC}
+        \toprule
+        Models & 1 & 2 & 3 & 4 & 5\\
+        \midrule
+        ShallowConvNet & 94.34 & 96.69 & 66.20 & 89.55 & 76.39 \\
+        DeepConvNet & 91.11 & 86.85 & 62.37 & 82.58 & 69.18 \\
+        EEGNet & 94.95 & 85.80 & 67.77 & 87.63 & 61.63 \\
+        EEGResNet & 76.22 & 77.61 & 53.05 & 61.85 & 49.39 \\
+        EEGInception & 91.20 & 92.86 & 70.30 & 82.93 & 77.52 \\
+        EEGConformer & 85.98 & 52.27 & 47.82 & 25.61 & 58.25 \\
+        LMDA-Net & 91.99 & 93.21 & 69.16 & 86.41 & 70.31 \\
+        \midrule 
+        HA-FuseNet \\
+        \bottomrule
+      \end{tabularx}
+    \end{subtable}
+    \begin{subtable}[ht]{\textwidth}
+      \centering
+    %   \caption{子表b}
+      \label{tab:2acompareagb}
+      \begin{tabularx}{\textwidth}{CCCCCCC}
+        \toprule
+        Models & 6 & 7 & 8 & 9 & Average \\
+        \midrule
+        ShallowConvNet & 62.24 & 90.94 & 84.54 & 89.72 & 83.40 \\
+        DeepConvNet & 59.38 & 85.80 & 73.15 & 82.58 & 77.00 \\
+        EEGNet & 46.09 & 83.71 & 66.25 & 77.61 & 74.60 \\
+        EEGResNet & 44.44 & 75.35 & 65.37 & 77.88 & 64.57 \\
+        EEGInception & 60.85 & 83.97 & 78.45 & 89.11 & 80.80 \\
+        EEGConformer & 26.65 & 27.00 & 25.27 & 80.05 & 47.65 \\
+        LMDA-Net & 60.24 & 83.28 & 81.18 & 88.15 & 80.44 \\
+        \midrule 
+        HA-FuseNet \\
+        \bottomrule
+      \end{tabularx}
+    \end{subtable}
+    
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \caption{数据增强后HA-FuseNet与其他模型在测试集上的被试间实验结果对比（Kappa/SD）}
+    \label{tab:2acompareagsd}
+    \begin{tabularx}{\textwidth}{CCC}
+      \toprule
+      Models & Kappa & SD \\
+      \midrule
+      ShallowConvNet & 0.77 & 11.67 \\
+      DeepConvNet & 0.69 & 10.73 \\
+      EEGNet & 0.66 & 14.52 \\
+      EEGResNet & 0.53 & 12.36 \\
+      EEGInception & 0.74 & 9.79 \\
+      EEGConformer & 0.30 & 22.38 \\
+      LMDA-Net & 0.74 & 10.74 \\
+      \midrule 
+      HA-FuseNet \\
+      \bottomrule
+    \end{tabularx}
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \caption{HA-FuseNet与其他模型在测试集上的被试间实验结果对比（Acc）}
+    
+    \begin{subtable}[ht]{\textwidth}
+      \centering
+    %   \caption{子表a}
+      \label{tab:2acomparecrossa}
+      \begin{tabularx}{\textwidth}{CCCCCC}
+        \toprule
+        Models & 1 & 2 & 3 & 4 & 5\\
+        \midrule
+        ShallowConvNet \\
+        DeepConvNet \\
+        EEGNet \\
+        EEGResNet \\
+        EEGInception \\
+        EEGConformer \\
+        LMDA-Net \\
+        \midrule 
+        HA-FuseNet \\
+        \bottomrule
+      \end{tabularx}
+    \end{subtable}
+    \begin{subtable}[ht]{\textwidth}
+      \centering
+    %   \caption{子表b}
+      \label{tab:2acomparecrossb}
+      \begin{tabularx}{\textwidth}{CCCCCCC}
+        \toprule
+        Models & 6 & 7 & 8 & 9 & Average \\
+        \midrule
+        ShallowConvNet \\
+        DeepConvNet \\
+        EEGNet \\
+        EEGResNet \\
+        EEGInception \\
+        EEGConformer \\
+        LMDA-Net \\
+        \midrule 
+        HA-FuseNet \\
+        \bottomrule
+      \end{tabularx}
+    \end{subtable}
+    
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \caption{HA-FuseNet与其他模型在测试集上的被试间实验结果对比（Kappa/SD）}
+    \label{tab:2acomparecrosssd}
+    \begin{tabularx}{\textwidth}{CCC}
+      \toprule
+      Models & Kappa & SD \\
+      \midrule
+      ShallowConvNet \\
+      DeepConvNet \\
+      EEGNet \\
+      EEGResNet \\
+      EEGInception \\
+      EEGConformer \\
+      LMDA-Net \\
+      \midrule 
+      HA-FuseNet \\
+      \bottomrule
+    \end{tabularx}
+\end{table}
+
+
 \subsection{BCI Competition IV Dataset 2B数据集上的对比试验}
+
+\begin{table}[ht]
+    \centering
+    \caption{HA-FuseNet与其他模型在测试集上的被试内实验结果对比（Acc）}
+    
+    \begin{subtable}[ht]{\textwidth}
+      \centering
+    %   \caption{子表a}
+      \label{tab:2bcompareina}
+      \begin{tabularx}{\textwidth}{CCCCCC}
+        \toprule
+        Models & 1 & 2 & 3 & 4 & 5\\
+        \midrule
+        ShallowConvNet 59.17 & 68.33 & 74.17 & 60.83 & 63.08\\
+        DeepConvNet & 59.17 & 76.67 & 72.50 & 60.00 & 68.46\\
+        EEGNet & 60.00 & 72.50 & 73.33 & 57.50 & 59.23 \\
+        EEGResNet \\
+        EEGInception \\
+        EEGConformer \\
+        LMDA-Net \\
+        \midrule 
+        HA-FuseNet \\
+        \bottomrule
+      \end{tabularx}
+    \end{subtable}
+    \begin{subtable}[ht]{\textwidth}
+      \centering
+    %   \caption{子表b}
+      \label{tab:2bcompareinb}
+      \begin{tabularx}{\textwidth}{CCCCCCC}
+        \toprule
+        Models & 6 & 7 & 8 & 9 & Average \\
+        \midrule
+        ShallowConvNet & 80.83 & 59.29 & 90.77 & 78.33 & 70.53 \\
+        DeepConvNet & 80.00 & 63.57 & 97.69 & 78.33 & 72.93 \\
+        EEGNet & 66.67 & 57.86 & 94.62 & 78.33 & 68.89 \\
+        EEGResNet \\
+        EEGInception \\
+        EEGConformer \\
+        LMDA-Net \\
+        \midrule 
+        HA-FuseNet \\
+        \bottomrule
+      \end{tabularx}
+    \end{subtable}
+    
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \caption{HA-FuseNet与其他模型在测试集上的被试内实验结果对比（Kappa/SD）}
+    \label{tab:2bcompareinsd}
+    \begin{tabularx}{\textwidth}{CCC}
+      \toprule
+      Models & Kappa & SD \\
+      \midrule
+      ShallowConvNet &&10.54\\
+      DeepConvNet &&11.40\\
+      EEGNet && 11.61\\
+      EEGResNet &&\\
+      EEGInception &&\\
+      EEGConformer &&\\
+      LMDA-Net &&\\
+      \midrule 
+      HA-FuseNet \\
+      \bottomrule
+    \end{tabularx}
+\end{table}
+
+
+
+\begin{table}[ht]
+    \centering
+    \caption{HA-FuseNet与其他模型在测试集上的被试间实验结果对比（Acc）}
+    
+    \begin{subtable}[ht]{\textwidth}
+      \centering
+    %   \caption{子表a}
+      \label{tab:2bcomparecrossa}
+      \begin{tabularx}{\textwidth}{CCCCCC}
+        \toprule
+        Models & 1 & 2 & 3 & 4 & 5\\
+        \midrule
+        ShallowConvNet \\
+        DeepConvNet \\
+        EEGNet \\
+        EEGResNet \\
+        EEGInception \\
+        EEGConformer \\
+        LMDA-Net \\
+        \midrule 
+        HA-FuseNet \\
+        \bottomrule
+      \end{tabularx}
+    \end{subtable}
+    \begin{subtable}[ht]{\textwidth}
+      \centering
+    %   \caption{子表b}
+      \label{tab:2bcomparecrossb}
+      \begin{tabularx}{\textwidth}{CCCCCCC}
+        \toprule
+        Models & 6 & 7 & 8 & 9 & Average \\
+        \midrule
+        ShallowConvNet \\
+        DeepConvNet \\
+        EEGNet \\
+        EEGResNet \\
+        EEGInception \\
+        EEGConformer \\
+        LMDA-Net \\
+        \midrule 
+        HA-FuseNet \\
+        \bottomrule
+      \end{tabularx}
+    \end{subtable}
+    
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \caption{HA-FuseNet与其他模型在测试集上的被试间实验结果对比（Kappa/SD）}
+    \label{tab:2bcomparecrosssd}
+    \begin{tabularx}{\textwidth}{CCC}
+      \toprule
+      Models & Kappa & SD \\
+      \midrule
+      ShallowConvNet \\
+      DeepConvNet \\
+      EEGNet \\
+      EEGResNet \\
+      EEGInception \\
+      EEGConformer \\
+      LMDA-Net \\
+      \midrule 
+      HA-FuseNet \\
+      \bottomrule
+    \end{tabularx}
+\end{table}
 
 \section{本章小结}
 
