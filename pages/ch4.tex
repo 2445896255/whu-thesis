@@ -241,15 +241,15 @@ Kappa系数的范围在-1至1区间内，通常大于0，Kappa值越大，表明
     \toprule
     Models & ACC(\%) & Kappa \\
     \midrule
-    Inception-In & 63.31 & 0.51 \\
-    Inception-After & \textbf{75.35} & \textbf{0.70} \\
+    Inception-In & 64.01 & 0.48 \\
+    Inception-After & \textbf{74.42} & \textbf{0.65} \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
 \paragraph{svSE模块引入的对比试验}
 
-为了选择适合MI-EEG分类任务的基准注意力机制，论文在DI-Net的时间卷积层后引入了不同的混合注意力模块，并在2A数据集上进行了实验，实验结果如表~\ref{tab:att}~所示，表中的指标为九位被试的平均表现，由于scSE模块取得了最好的表现，论文选择基于scSE模块进行改进。
+为了选择适合MI-EEG分类任务的基准注意力机制，论文在DI-Net引入了不同的混合注意力模块，并在2A数据集上进行了实验，实验结果如表~\ref{tab:att}~所示，表中的指标为九位被试的平均表现。数据显示，scSE模块取得了最好的表现，因此论文选择基于scSE模块进行改进。
 \begin{table}[ht]
     \centering
     \caption{不同注意力模块引入DI-Net的实验结果对比}
@@ -259,14 +259,15 @@ Kappa系数的范围在-1至1区间内，通常大于0，Kappa值越大，表明
       Attention & ACC(\%) & Kappa \\
       \midrule
       CBAM\cite{woo2018cbam} & 74.97 & 0.64 \\
-      scSE\cite{8578843} & 76.35 & 0.69 \\
-      CoordAttention\cite{Hou2021CoordinateAF} & 71.84 & 0.62 \\
+      scSE\cite{8578843} & \textbf{75.35} & \textbf{0.67} \\
+      CoordAttention\cite{Hou2021CoordinateAF} & 73.21 & 0.62 \\
       \midrule
-      svSE & 78.09 & 0.71 \\
+      svSE & 76.16 & 0.68 \\
       \bottomrule
     \end{tabularx}
 \end{table}
-在表~\ref{tab:att}~中，同样展示了svSE以同样方式引入DI-Net的效果，以展示其改进的有效性。svSE在四类混合注意力机制中取得了最高的准确率和Kappa系数。
+
+在表~\ref{tab:att}~中，同样展示了svSE以同样方式引入DI-Net的效果，svSE在四类混合注意力机制中取得了最高的准确率和Kappa系数，证明了svSE模块改进的有效性。
 
 DIS-Net中，由于DI-Net的特征提取过程分为时间卷积和空间卷积两个阶段，svSE模块可采取以下三种引入方式：其一是在时间卷积层后引入；其二是在空间卷积层后引入；其三是同时在时间卷积层和空间卷积层之后引入。图~\ref{fig:att-Base}~展示了这三种引入svSE模块的方式，从左至右分别是时间卷积层后引入svSE模块、空间卷积层后引入svSE模块，以及在时间卷积和空间卷积层后均引入svSE模块。将这三种引入方式对应的模型分别简称为S-Temporal-Net、S-Spatial-Net、S-TS-Net。
 \begin{figure}
@@ -285,9 +286,9 @@ DIS-Net中，由于DI-Net的特征提取过程分为时间卷积和空间卷积�
         \toprule
         Models & ACC(\%) & Kappa & SD \\
         \midrule
-        S-Temporal-Net & 78.09 & 0.71 & 10.38 \\
-        S-Spatial-Net & 77.16 & 0.69 & 10.24 \\
-        S-TS-Net & \textbf{78.55} & \textbf{0.71} & \textbf{9.46} \\
+        S-Temporal-Net & 76.09 & 0.68 & 11.97 \\
+        S-Spatial-Net & 75.03 & 0.66 & 12.28 \\
+        S-TS-Net & \textbf{76.16} & \textbf{0.68} & \textbf{11.72} \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -318,11 +319,11 @@ ShuffleNetV2问题在于，进行Channel Split时，通常是对特征图进行�
       \toprule
       Models & Paramters & FLOPs & ACC(\%) \\
       \midrule
-      GAS/SAS & 7.31K & 130.37M & 73.80\\
-      SG & 7.36K & 133.04M & \textbf{74.61}\\
-      Ghost & \textbf{7.27K} & \textbf{129.93M} & 73.03\\
+      GAS/SAS & 7.31K & 130.37M & 72.80\\
+      SG & 7.36K & 133.04M & \textbf{73.61}\\
+      Ghost & \textbf{7.27K} & \textbf{129.93M} & 72.03\\
       \midrule
-      Origin & 29.99K & 690.37M & 75.42\\
+      Origin & 29.99K & 690.37M & 74.42\\
       \bottomrule
     \end{tabularx}
 \end{table}
@@ -345,8 +346,8 @@ SCoT引入LSTM的方式有两种：在LSTM Layer之前，称之为SCoT-before；
       \toprule
       Models & ACC(\%) & Kappa & SD \\
       \midrule
-      SCoT-Before & 74.25 & 0.65 & 12.49 \\
-      SCoT-After & \textbf{75.66} & \textbf{0.67} & \textbf{9.71} \\
+      SCoT-Before & 76.25 & 0.68 & 12.49 \\
+      SCoT-After & \textbf{77.66} & \textbf{0.70} & \textbf{11.33} \\
       \bottomrule
     \end{tabularx}
 \end{table}
@@ -378,13 +379,13 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
       \toprule
       Models & ACC(\%) & Kappa & SD \\
       \midrule
-      LS-Before & \textbf{75.66} & \textbf{0.67} & \textbf{9.71} \\
-      LS-After & 74.54 & 0.66 & 11.94 \\
+      LS-Before & \textbf{76.58} & \textbf{0.69} & \textbf{11.45} \\
+      LS-After & 75.87 & 0.68 & 11.94 \\
       \bottomrule
     \end{tabularx}
 \end{table}
 
-数据显示，LS-Before具有更高的准确率和一致性，且不同被试的准确率差异较小，这可能是因为LS-Net主要进行了时序特征提取与全局时空自注意力加权两个操作，对空间维度的操作较缺乏，因此需要由空间卷积层进行空间维度的特征提取，以获得更丰富的特征表达。论文采用LS-Before的方式进行LS-Net和DIS-Net的特征融合。
+数据显示，LS-Before具有更高的准确率和一致性，且不同被试的准确率差异较小，这可能是因为LS-Net主要进行了时序特征提取与全局时空自注意力加权两个操作，对空间维度的操作较缺乏，因此需要由空间卷积层进行空间维度的特征提取，以获得更丰富的特征表达；而LS-After将空间维度的特征视为深度维度，可能造成了特征之间的混淆，因此反而不利于提高分类的精确度。论文采用LS-Before的方式进行LS-Net和DIS-Net的特征融合。
 
 \subsection{各模块消融实验}
 
@@ -416,9 +417,9 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
       \midrule
       Inception &67.40&0.23&17.16\\
       Base-Inception &72.35&0.63&13.27\\
-      BI+Dense &75.42&0.671& 11.92\\
-      DI+svSE &76.16&0.677&11.72\\
-      DIS+LSTM &76.58 &0.685 & 11.45\\
+      BI+Dense &74.42&0.65& 12.92\\
+      DI+svSE &76.16&0.68&11.72\\
+      DIS+LSTM &76.58 &0.69 & 11.45\\
       DIS+LSTM+SCoT &77.66&0.70&11.33 \\
       \bottomrule
     \end{tabularx}
@@ -426,7 +427,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 实验数据显示，Inception+Bottleneck+Dense Block+svSE+LSTM+SCoT结构，即本文所提出的最终模型HA-FuseNet在MI-EEG分类任务上表现最好，准确率、Kappa一致性系数分别达到了77.66\%、0.70，标准差达到了11.33，证明在不同被试上，HA-FuseNet取得了最好的分类性能，且被试之间的准确率差异较小，具有较好的稳定性。
 
-此外，加入模块后模型的性能提升最大，
+随着模型的逐渐复杂，准确率、Kappa一致性呈现上升趋势，标准差呈现下降趋势，证明了每个模块的有效性。此外，对Inception进行MI-EEG分类任务的针对性改进后得到的BaseNet具有最明显的提升，多尺度密集连接模块、svSE模块、SCoT模块也具有明显的提升，而LSTM的提升不明显。这可能说明了相较于循环神经网络，卷积神经网络在MI-EEG分类任务上具有更大的优势。
 
 \subsection{BCI Competition IV Dataset 2A数据集上的对比试验}
 
@@ -754,7 +755,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
         EEGConformer\cite{song2022eeg}  & 58.33 & 67.50 & 65.83 & 63.85 & 70.00 \\
         LMDA-Net\cite{miao2023lmda}  & 70.00 & 67.50 & 72.50 & 90.77 & 72.31 \\
         \midrule 
-        HA-FuseNet \\
+        HA-FuseNet  & 67.50 & 67.50 & 89.23 & 75.39 & 82.50 \\
         \bottomrule
       \end{tabularx}
     \end{subtable}
@@ -774,7 +775,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
         EEGConformer\cite{song2022eeg}  & 78.33 & 78.33 & 67.86 & 61.67 & 67.97 \\
         LMDA-Net\cite{miao2023lmda}  & 84.17 & 79.17 & 70.71 & 69.17 & 75.14 \\
         \midrule 
-        HA-FuseNet \\
+        HA-FuseNet  & 82.50 & 80.00 & 72.14 & 71.67 & 76.49\\
         \bottomrule
       \end{tabularx}
     \end{subtable}
@@ -797,7 +798,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
       EEGConformer\cite{song2022eeg} &0.35 &6.44\\
       LMDA-Net\cite{miao2023lmda} &0.52&7.43\\
       \midrule 
-      HA-FuseNet \\
+      HA-FuseNet &0.53&7.09\\
       \bottomrule
     \end{tabularx}
 \end{table}
