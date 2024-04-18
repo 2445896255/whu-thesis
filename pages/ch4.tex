@@ -611,7 +611,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
         EEGConformer\cite{song2022eeg}  & 52.78 & 26.04 & 26.04 & 50.00 & 64.24\\
         LMDA-Net\cite{miao2023lmda} & 72.22 & 47.22 & 83.68 & 55.90 & 51.74 \\
         \midrule 
-        HA-FuseNet  & 76.04 & 44.79 & 84.72 & 55.21 & 53.12\\
+        HA-FuseNet  & 76.04 & 52.79 & 84.72 & 55.21 & 53.13\\
         \bottomrule
       \end{tabularx}
     \end{subtable}
@@ -631,7 +631,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
         EEGConformer\cite{song2022eeg} & 25.00 & 26.74 & 29.51 & 27.78 & 36.46\\
         LMDA-Net\cite{miao2023lmda}  & 48.26 & 71.88 & 76.04 & 66.67 & 63.73\\
         \midrule 
-        HA-FuseNet  & 50.35 & 76.74 & 77.08 & 68.06 & 65.12 \\
+        HA-FuseNet  & 53.99 & 76.74 & 77.08 & 70.06 & 66.64 \\
         \bottomrule
       \end{tabularx}
     \end{subtable}
@@ -654,7 +654,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
       EEGConformer\cite{song2022eeg}&0.15&14.09 \\
       LMDA-Net\cite{miao2023lmda} &0.52&12.53\\
       \midrule 
-      HA-FuseNet &0.53&13.6\\
+      HA-FuseNet &0.53&12.03\\
       \bottomrule
     \end{tabularx}
 \end{table}
@@ -674,15 +674,15 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
         \toprule
         Models & 1 & 2 & 3 & 4 & 5\\
         \midrule
-        ShallowConvNet\cite{schirrmeister2017deep} & 59.17 & 68.33 & 74.17 & 60.83 & 63.08\\
-        DeepConvNet\cite{schirrmeister2017deep} & 59.17 & 76.67 & 72.50 & 60.00 & 68.46\\
-        EEGNet\cite{lawhern2018eegnet} & 60.00 & 72.50 & 73.33 & 57.50 & 59.23 \\
-        EEGResNet\cite{HBM:HBM23730} \\
-        EEGInception\cite{zhang2021eeg} \\
-        EEGConformer\cite{song2022eeg} \\
-        LMDA-Net\cite{miao2023lmda} \\
+        ShallowConvNet\cite{schirrmeister2017deep}  & 78.33 & 74.17 & 59.17 & 90.77 & 63.08\\
+        DeepConvNet\cite{schirrmeister2017deep}  & 78.33 & 72.50 & 59.17 & 97.69 & 68.46\\
+        EEGNet\cite{lawhern2018eegnet}  & 78.33 & 73.33 & 60.00 & 94.61 & 59.23 \\
+        EEGResNet\cite{HBM:HBM23730}  & 68.33 & 62.50 & 58.33 & 87.69 & 70.00 \\
+        EEGInception\cite{zhang2021eeg}  & 81.67 & 70.83 & 63.33 & 90.00 & 82.31\\
+        EEGConformer\cite{song2022eeg}  & 72.50 & 73.33 & 60.00 & 88.46 & 56.92\\
+        LMDA-Net\cite{miao2023lmda}  & 76.67 & 75.00 & 65.00 & 93.85 & 64.61 \\
         \midrule 
-        HA-FuseNet \\
+        HA-FuseNet  & 75.83 & 75.83 & 70.83 & 93.85 & 71.54 \\
         \bottomrule
       \end{tabularx}
     \end{subtable}
@@ -694,15 +694,15 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
         \toprule
         Models & 6 & 7 & 8 & 9 & Average \\
         \midrule
-        ShallowConvNet\cite{schirrmeister2017deep} & 80.83 & 59.29 & 90.77 & 78.33 & 70.53 \\
-        DeepConvNet\cite{schirrmeister2017deep} & 80.00 & 63.57 & 97.69 & 78.33 & 72.93 \\
-        EEGNet\cite{lawhern2018eegnet} & 66.67 & 57.86 & 94.62 & 78.33 & 68.89 \\
-        EEGResNet\cite{HBM:HBM23730} \\
-        EEGInception\cite{zhang2021eeg} \\
-        EEGConformer\cite{song2022eeg} \\
-        LMDA-Net\cite{miao2023lmda} \\
+        ShallowConvNet\cite{schirrmeister2017deep}  & 80.83 & 68.33 & 59.29 & 60.83 & 70.53 \\
+        DeepConvNet\cite{schirrmeister2017deep}  & 80.00 & 76.67 & 63.57 & 60.00 & 72.93 \\
+        EEGNet\cite{lawhern2018eegnet}  & 66.67 & 72.50 & 57.86 & 57.50 & 68.89 \\
+        EEGResNet\cite{HBM:HBM23730}  & 73.33 & 67.50 & 66.43 & 62.50 & 68.51\\
+        EEGInception\cite{zhang2021eeg}  & 81.67 & 69.17 & 66.43 & 65.83 & 74.58\\
+        EEGConformer\cite{song2022eeg}  & 70.83 & 70.83 & 60.71 & 60.83 & 68.27\\
+        LMDA-Net\cite{miao2023lmda}  & 80.00 & 70.83 & 60.71 & 56.67 & 71.48 \\
         \midrule 
-        HA-FuseNet \\
+        HA-FuseNet  & 77.50 & 62.50 & 65.71 & 63.33 & 72.99 \\
         \bottomrule
       \end{tabularx}
     \end{subtable}
@@ -717,15 +717,15 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
       \toprule
       Models & Kappa & SD \\
       \midrule
-      ShallowConvNet\cite{schirrmeister2017deep} &&10.54\\
-      DeepConvNet\cite{schirrmeister2017deep} &&11.40\\
-      EEGNet\cite{lawhern2018eegnet} && 11.61\\
-      EEGResNet\cite{HBM:HBM23730} &&\\
-      EEGInception\cite{zhang2021eeg} &&\\
-      EEGConformer\cite{song2022eeg} &&\\
-      LMDA-Net\cite{miao2023lmda} &&\\
+      ShallowConvNet\cite{schirrmeister2017deep} &0.41&10.54\\
+      DeepConvNet\cite{schirrmeister2017deep} &0.45&11.40\\
+      EEGNet\cite{lawhern2018eegnet} &0.38& 11.61\\
+      EEGResNet\cite{HBM:HBM23730} &0.37&7.99\\
+      EEGInception\cite{zhang2021eeg} &0.49&8.89\\
+      EEGConformer\cite{song2022eeg} &0.36&9.27\\
+      LMDA-Net\cite{miao2023lmda} &0.43&10.73\\
       \midrule 
-      HA-FuseNet \\
+      HA-FuseNet &0.46&9.03\\
       \bottomrule
     \end{tabularx}
 \end{table}
