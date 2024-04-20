@@ -1,22 +1,27 @@
 %% An Introduction to LaTeX Thesis Template of Wuhan University
 %%
 %% Created by WHUTUG
-\documentclass[type=master,class=academic]{whu-thesis}
+\documentclass[type=master,class=academic,oneside]{whu-thesis}
+
+\usepackage[figuresright]{rotating}
+\usepackage{float}
+
 \whusetup
   {
     info               =
       {
-        title          = {基于双分支特征融合和注意力机制的运动想象脑电图分类网络研究},
-        title*         = {An Introduction to LaTeX Thesis Template\\of Wuhan University},
+        title          = {基于特征融合和注意力机制的运动想象脑电图分类研究},
+        title*         = {Research on EEG-based Motor Imagery Classification Based on Feature Fusion and Attention Mechanism},
         student-number = {2021202110015},
         school         = {计算机学院},
+        % school*        = {School of Computer Science},
         author         = {刘梓轩},
-        author*        = {Your Name},
+        author*        = {Liu Zixuan},
         subject        = {计算机科学与技术},
         major          = {计算机科学与技术},
         advisor        = {李石君 , 教授},
         direction      = {机器学习与应用},
-        date           = {2021/5},
+        date           = {2024/4},
         keywords       = {脑机接口 , 运动想象 , 脑电图 , 注意力 , 深度学习},
         keywords*      = {BCI , Motor Imagery , EEG , attention , Deep Learning},
       },
@@ -30,7 +35,7 @@
       },
     element            =
       {
-        innovation     = {pages/innovation},
+        % innovation     = {pages/innovation},
         abstract       = {pages/abstract},
         abstract*      = {pages/enabstract},
         bibliography   = {ref/refs , ref/thu},
@@ -39,8 +44,7 @@
         % appendix       = {pages/appendix}
       }
   }
-  \usepackage[figuresright]{rotating}
-  \usepackage{float}
+
 \begin{document}
 %%----------- 主体部分 ----------- %%
 \include{pages/ch1}
