@@ -445,7 +445,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 (3) HA-FuseNet在被试间实验中，取得了最高的平均准确率和Kappa一致性，证明了HA-FuseNet具有优秀的跨被试泛化能力。
 
-实验结果证明了论文所提出模型的有效性，能够使用较小规模的数据集取得优秀的性能表现，且具有相较于基准模型最优的跨被试泛化能力，而使用数据增强算法后，HA-FuseNet的性能表现能够得到进一步的增强。
+实验结果证明了论文所提出模型的有效性，能够使用较小规模的数据集取得优秀的性能表现，且具有相较于基准模型最优的分类精度和跨被试泛化能力，而使用数据增强算法后，HA-FuseNet的性能表现能够得到进一步的增强。
 
 \paragraph{被试内对比实验}
 
@@ -612,7 +612,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 值得注意的是，EEGConformer的性能反而出现了下降，这说明基于频率混叠的数据增强算法或许并不适用于Transformer架构，这可能说明了EEGConformer将Transformer直接引入卷积层之后形成串联模型的方式具有受限的提取不同频率成分的能力。如果将Transformer应用于MI-EEG分类任务中，采用合适的滤波器进行数据预处理，并基于其他方法进行数据增强从而形成较大规模的数据集，可能是更适合的方法。
 
-此外，表~\ref{tab:2acompareagsd}~表明进行数据增强之后，除EEGConformer之外，其他模型的Kappa一致性均有所上升。论文所提出的HA-FuseNet的kappa值达到了0.76，准确率的标准差下降为10.90，仅次于DeepConvNet的10.73和LMDA-Net的10.74，表明HA-FuseNet的跨被试泛化能力得到了进一步的加强。
+此外，表~\ref{tab:2acompareagsd}~表明进行数据增强之后，除EEGConformer之外，其他模型的Kappa一致性均有所上升。论文所提出的HA-FuseNet的kappa值达到了0.76，准确率的标准差下降为10.90，仅次于DeepConvNet的10.73和LMDA-Net的10.74，表明HA-FuseNet的在不同被试间的稳定性得到了进一步的加强。
 
 \paragraph{被试间对比实验}
 
@@ -798,14 +798,16 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 基准模型的实验结果印证了论文设计模型的思路的正确性，包括更关注时间维度特征、同时利用深层和浅层特征、针对EEG信号特性设计注意力模块等。这些设计使得HA-FuseNet对空间分辨率具有低依赖性，即对于高空间分辨率和低空间分辨率的场景，都能取得较好的性能表现。
 
-实验数据证实，相较于基准模型，HA-FuseNet取得了最高的平均准确率和Kappa值，分别达到了75.23\%和0.50
+实验数据证实，相较于基准模型，HA-FuseNet取得了最高的平均准确率和Kappa值，分别达到了75.23\%和0.50，在被试2/3/8号上取得了所有模型中最优的准确率，且在被试4/7号上取得了高于或持平于次优模型EEGInception的准确率。HA-FuseNet的准确率标准差达到了8.84，优于EEGInception，仅次于EEGResNet，证明HA-FuseNet不仅具有优秀的分类精度，同时在不同被试间具有良好的稳定性。
 
 \paragraph{被试间对比实验}
 
-\begin{table}[ht]
+被试间对比实验中，对于一名被试，使用其他所有被试的训练集为该被试的训练集，即训练集的数据规模为\(120\times8\)，测试集为该被试的测试集，数据规模仍然为120。
+
+\begin{table}[h]
     \centering
     \caption{HA-FuseNet与基准模型在2B数据集上的被试间实验结果对比（Acc\%）}
-    
+    \label{tab:2bcomparecross}
     \begin{subtable}[ht]{\textwidth}
       \centering
     %   \caption{子表a}
@@ -814,7 +816,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
         \toprule
         Models & 1 & 2 & 3 & 4 & 5\\
         \midrule
-        ShallowConvNet\cite{schirrmeister2017deep}  & 75.00 & 67.50 & 70.83 & \textbf{92.31} & 78.46\\
+        ShallowConvNet\cite{schirrmeister2017deep}  & 75.00 & 67.50 & 70.83 & \textbf{92.20} & 76.46\\
         DeepConvNet\cite{schirrmeister2017deep}  & 67.50 & 65.00 & 67.50 & 91.54 & 72.31 \\
         EEGNet\cite{lawhern2018eegnet}  & 63.33 & \textbf{70.83} & \textbf{73.33} & 85.39 & 73.85 \\
         EEGResNet\cite{HBM:HBM23730}  & 62.50 & 67.50 & 62.50 & 89.23 & 72.31\\
@@ -834,11 +836,11 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
         \toprule
         Models & 6 & 7 & 8 & 9 & Average \\
         \midrule
-        ShallowConvNet\cite{schirrmeister2017deep}  & 81.67 & 75.83 & \textbf{72.14} & 70.00 & \textbf{75.97} \\
+        ShallowConvNet\cite{schirrmeister2017deep}  & 81.67 & 75.83 & \textbf{70.14} & 70.00 & 75.52 \\
         DeepConvNet\cite{schirrmeister2017deep}  & 86.67 & 76.67 & 70.00 & \textbf{70.83} & 74.22 \\
         EEGNet\cite{lawhern2018eegnet}  & 82.50 & \textbf{85.00} & 70.00 & 69.17 & 74.82 \\
         EEGResNet\cite{HBM:HBM23730}  & 78.33 & 69.17 & 69.29 & 65.00 & 70.65 \\
-        EEGInception\cite{zhang2021eeg}  & \textbf{85.00} & 74.17 & 71.43 & 69.17 & 75.64 \\
+        EEGInception\cite{zhang2021eeg}  & \textbf{85.00} & 74.17 & 71.43 & 69.17 & \textbf{75.64} \\
         EEGConformer\cite{song2022eeg}  & 78.33 & 78.33 & 67.86 & 61.67 & 67.97 \\
         LMDA-Net\cite{miao2023lmda}  & 84.17 & 79.17 & 70.71 & 69.17 & 75.14 \\
         \midrule 
@@ -846,7 +848,6 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
         \bottomrule
       \end{tabularx}
     \end{subtable}
-    
 \end{table}
 
 \begin{table}[ht]
@@ -857,11 +858,11 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
       \toprule
       Models & Kappa & SD \\
       \midrule
-      ShallowConvNet\cite{schirrmeister2017deep} &\textbf{0.52}&7.11\\
+      ShallowConvNet\cite{schirrmeister2017deep} &0.52&7.18\\
       DeepConvNet\cite{schirrmeister2017deep} &0.49& 8.62 \\
       EEGNet\cite{lawhern2018eegnet} &0.51& 7.31\\
       EEGResNet\cite{HBM:HBM23730} &0.39 &8.07\\
-      EEGInception\cite{zhang2021eeg} & 0.52 &7.29 \\
+      EEGInception\cite{zhang2021eeg} & \textbf{0.52} &7.29 \\
       EEGConformer\cite{song2022eeg} &0.35 &\textbf{6.44}\\
       LMDA-Net\cite{miao2023lmda} &0.52&7.43\\
       \midrule 
@@ -870,5 +871,16 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
     \end{tabularx}
 \end{table}
 
+表~\ref{tab:2bcomparecross}~展示了2B数据集上HA-FuseNet和基准模型进行被试内实验的准确率，其中，最后一列为九名被试的平均准确率。表~\ref{tab:2bcomparecrosssd}~展示了被试内实验的Kappa一致性系数和准确率标准差，其中，Kappa系数为九名被试的平均值。表~\ref{tab:2bcomparecross}~和表~\ref{tab:2bcomparecrosssd}~中对基准模型中的最优值进行了加粗展示。
+
+对比基准模型的实验数据，可以发现以下结果：
+
+(1) EEGInception在基准模型之中具有最优的准确率和Kappa系数，准确率平均值达到了75.64\%，高于次优模型ShallowConvNet大约0.08个百分点；EEGInception的准确率标准差为7.29，约比ShallowConvNet高0.11。这说明EEGInception的分类精度高于ShallowConvNet，但稳定性相对较差。相较于被试内实验，ShallowConvNet在被试间实验中的性能获得了明显的提升，其原因可能是较大的数据规模、较多变的数据分布弥补了ShallowConvNet学习低空间分辨率场景特征能力的不足，相当于ShallowConvNet经过了基于样本集合的数据增强。尽管如此，EEGInception仍然取得了最高的分类精度；
+
+(2) EEGConformer取得了最低的准确率标准差，为6.44，但EEGConformer的平均准确率为基准模型中的最低值，因此，虽然EEGConformer在不同被试之间的稳定性相对较优，但较低的分类精度表明其综合性能仍然较差。
+
+实验数据显示，论文提出的HA-FuseNet的平均准确率和Kappa系数均优于基准模型，分别为76.86\%和0.53，其准确率标准差为6.68，仅高于EEGConformer。然而，考虑到EEGConformer较差的分类精度，仍然可以认为HA-FuseNet的综合性能超过了所有的基准模型。这与在2A数据集上的实验结论相符，HA-FuseNet具有优秀的分类精度和跨被试泛化性能力，且可以使用小规模数据集进行训练，同时，在不同精度的空间分辨率条件下都具有较为稳定的性能。实验证明了HA-FuseNet的有效性。
+
 \section{本章小结}
 
+本章主要对于第三章构建的MI-EEG分类网络HA-FuseNet进行了消融实验、对比实验和跨被试泛化性实验。首先，介绍了实验使用的软硬件环境。其次，介绍了实验所使用的数据集以及对数据进行处理的方法，同时介绍了实验中所使用的基本配置，包括超参数、损失函数、评估指标等。实验使用BCI Competition IV Dataset 2A数据集和2B数据集，其具有不同的通道数，能够对模型在不同空间分辨率下的性能进行评估。最后，介绍了具体进行的实验：首先，设计并进行实验，验证不同的网络结构对HA-FuseNet性能的影响，从而选择最合适的架构方式；其次，通过在不同数据集上，与当前的多种MI-EEG分类模型进行被试内对比实验、被试间对比实验，评估HA-FuseNet的分类精度、被试间稳定性、跨被试泛化性、跨空间分辨率泛化性能力。实验结果证明，HA-FuseNet相较于基准模型取得了综合最优的各项性能，从而证明了论文所提出方法的有效性。
