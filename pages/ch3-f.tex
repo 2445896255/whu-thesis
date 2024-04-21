@@ -8,7 +8,13 @@
 
 原始的EEG信号通常为二维数据，包括通道（电极）和时间两个维度，具体而言，在EEG信号矩阵中，行代表分布在头皮不同位置的采样通道，列为时间序列数据，每个采样点对应一个时间戳下的生物电信号（通常为电压值），因此，一列数据就是一个特定时间点下所有通道同步采集到的电压读数。原始的EEG信号经过预处理之后，可以转换为时频图、头皮点位拓扑图等输入模式，尽管经过转换的输入相较于原始输入能够更全面地体现EEG信号的时频空信息，但这一过程往往需要具有神经科学背景的人工参与，在增加了人工成本同时，限制了模型自适应学习EEG信号中蕴含的复杂时空特征的能力，此外，复杂的预处理环节也增加了计算开销和应用成本，难以满足BCI系统即时响应的需求。因此，端到端网络在MI-EEG分类领域受到越来越多的重视，这类网络不经过或者仅仅经过很少的预处理步骤，而由深度学习算法自适应地提取关键特征并作出预测。
 
-为此，论文构建了基于特征融合和注意力机制的端到端MI-EEG分类网络HA-FuseNet，其结构如图所示。HA-FuseNet有两条并行分支，分别是基于卷积神经网络搭建的分支与基于长短期记忆网络的分支。卷积神经网络分支基于Inception结构搭建，通过在Inception分支引入密集连接结构，进行多尺度特征提取，同时利用高级语义信息与浅层特征；通过引入反转瓶颈层，在深度维度上促进时空特征的融合；通过引入svSE混合注意力模块促进网络对重要特征的关注度，svSE模块采取时空特征分离的策略，同时利用了EEG信号的方差信息，以获得针对性的结果。长短期记忆网络分支用以获取时间域的长期依赖信息，并且加入了SCoT全局注意力模块获取时空域的全局上下文信息。双分支的特征通过C2R模块和R2C模块进行交互，并随后在深度维度进行融合，以在利用卷积神经网络提取到的局部信息的同时有效地建立全局依赖关系，从而获取更为精准的分类效果。
+为此，论文构建了基于特征融合和注意力机制的端到端MI-EEG分类网络HA-FuseNet，其结构如图~\ref{fig:hafuse}~所示。HA-FuseNet通过两个子网络分别进行特征提取，随后进行特征融合和最终的分类预测。两个子网络分别是基于卷积神经网络搭建的DIS-Net与基于长短期记忆网络的LS-Net。DIS-Net基于Inception结构搭建，通过在Inception分支引入密集连接结构，进行多尺度特征提取，同时利用高级语义信息与浅层特征；通过引入反转瓶颈层，在深度维度上促进时空特征的融合；通过引入svSE混合注意力模块促进网络对重要特征的关注度，svSE模块采取时空特征分离的策略，同时利用了EEG信号的方差信息，以获得针对性的结果。LS-Net用以获取时空域的长期依赖信息，通过LSTM获取时间域的长短期依赖信息，并且加入了SCoT全局注意力模块获取时空域的全局上下文信息。两个子网络通过C2R模块和R2C模块进行交互，并在深度维度进行特征的融合，以在利用卷积神经网络提取到的局部信息的同时有效地建立全局依赖关系，从而获取更为精准的分类效果。在特征融合之后，通过使用了深度可分离卷积的空间卷积层，在提取空间特征的同时减少计算消耗，最后，通过全连接层进行分类的预测。
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{HA-FuseNet.pdf}
+    \caption{HA-FuseNet结构}
+    \label{fig:hafuse}
+  \end{figure}
 
 通过HA-FuseNet，可以更完整地获取MI-EEG信号的有效特征，提升分类效果。在下文中，将依次阐述论文的改进思路与构建方法。
 
@@ -79,7 +85,7 @@ EEG信号的空间分辨率较为不稳定，例如，在BCI Competition IV Data
 论文将改进后得到的基础模型称为BaseNet，其结构如图~\ref{fig:BaseNet}~所示。需要注意的是，Inception模块的层次数量和分支数量是影响其性能表现的两项可调的超参数。
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{Base-Net.pdf}
+    \includegraphics[width=\textwidth]{Base-Net中.pdf}
     \caption{BaseNet结构}
     \label{fig:BaseNet}
 \end{figure}
@@ -123,7 +129,7 @@ Gao Huang等人于2016年提出了密集连接网络\cite{huang2017densely}（De
 经过以上改进，新构建模型的结构如图~\ref{fig:incep-dense}~所示，将其命名为DI-Net。Dense-Inception module构成了时间卷积层，其内部的各个分支均由一系列改进版的Bottleneck Dense Block紧密堆叠而成，形成密集连接结构，用以同时获取浅层和深层的时间特征。每个分支提取的特征图在深度维度上进行聚合，并通过Transition模块进行深度压缩和特征整合，以进一步提升模型的表达能力和计算效率。
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{incep-densev2.pdf}
+  \includegraphics[width=\textwidth]{incep-dense中.pdf}
   \caption{DI-Net结构}
   \label{fig:incep-dense}
 \end{figure}
@@ -177,7 +183,7 @@ scSE同样结合了通道注意力机制与空间注意力机制，基于SENet�
 CBAM模块和scSE模块均为轻量级注意力模块，且均兼顾深度注意力和空间注意力，但scSE模块在参数数量上更具优势。与此同时，文献\cite{roy2018concurrent}研究发现scSE模块在语义分割任务上表现出色，特别是在与EEG信号拥有相似生理特性的医学图像的分割任务，其性能优于CBAM模块。基于以上理由，论文选择基于scSE模块进行改进，提出了一种新的注意力机制svSE（Separate Variance-Informed Spatial and Channel Squeeze-and-Excitation）模块，其结构如图~\ref{fig:svSE}~所示。
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{svSE.pdf}
+    \includegraphics[width=\textwidth]{svSE中.pdf}
     \caption{svSE结构}
     \label{fig:svSE}
 \end{figure}
@@ -303,7 +309,7 @@ EEG信号是使用脑电采集设备采集的大脑在一段时间内的电压�
 LSTM结合SCoT得到的网络结构如图~\ref{fig:ls}~所示，将其称之为LS-Net（LSTM-SCoT Net）。
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{ls-net.pdf}
+    \includegraphics[width=\textwidth]{ls-net中.pdf}
     \caption{LS-Net结构}
     \label{fig:ls}
 \end{figure}
@@ -346,7 +352,7 @@ GhostNet的优势在于其Ghost模块设计，该模块凭借对特征图间内�
 然而，Ghost模块在运用线性变换与传统卷积相结合的方式来产生新特征图的过程中，尚存在一定的局限性：在深度可分离卷积的实现上，Ghost模块使用一层分组卷积对输入特征图进行转换，缺乏不同特征图之间的相互关系。因此，论文对Ghost模块进行了优化，使用更为标准的深度可分离卷积进行特征图的转换，构建出SG模块（Separable Ghost Module）。SG模块的结构如图~\ref{fig:sg}~所示，通过两层卷积（可分离卷积和点积卷积）增强不同特征图之间的相互作用，进而提升网络的整体表现力和特征学习能力。途中蓝色框所包括的部分为替代原本卷积层的改动，\(D_{in}\)为输入特征图数量，\(D_{out}\)为输出特征图数量，\(ratio\)为权重参数。
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\textwidth]{SGv2.pdf}
+    \includegraphics[width=0.5\textwidth]{SG中.pdf}
     \caption{SG模块结构}
     \label{fig:sg}
 \end{figure}
