@@ -1431,6 +1431,7 @@ JFM = zh_CN / { \exp_not:o \g__whu_option_punct_tl , vert }
 \cs_new_protected:Npn \__whu_make_back_matter_master:
 {
   \__whu_make_bibliography:
+  \__whu_make_achievements:
   \__whu_make_appendix:
   \__whu_make_thanks:
 }
