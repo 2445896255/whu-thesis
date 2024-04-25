@@ -35,7 +35,7 @@
 
 (1) 采集准备：根据国际10-20标准导联系统或其他标准定位方案，将电极安放在被试头皮的不同位置，以捕获不同脑区的电位信号。电极通常通过电极帽或电极盘固定，以确保位置的稳定和正确。由于人体脑电信号强度微弱，通常会通过与脑电采集设备相连的放大器对脑电信号进行增强和记录；
 
-(2) 信号记录：当大脑神经元兴奋或抑制时，会产生微弱的电位变化，这些电位变化传导到头皮表面，形成可测量的电压差，由脑电采集系统进行捕获和放大。脑电采集系统通常以每秒进行\(N\)次连续采集的方式工作，即采集频率为\(N\)Hz；
+(2) 信号记录：当大脑神经元兴奋或抑制时，会产生微弱的电位变化，这些电位变化传导到头皮表面，形成可测量的电压差，由脑电采集系统进行捕获和放大。脑电采集系统通常以每秒连续进行\(N\)次采集的方式工作，即采集频率为\(N\)Hz；
 
 (3) 数字化：根据脑电采集系统的设置，对被捕获的脑电信号进行一定的处理，包括通过模数转换器（Analog to Digital Converter，ADC）将模拟信号转换为数字信号。
 
@@ -115,7 +115,7 @@ BCI Competition IV Dataset 2B的事件类型与2A的事件类型相似，但不�
 
 \subsection{数据预处理}
 
-EEG信号具有低信噪比、非平稳、空间变异性等特性，并且通常具有较小规模的数据集，一般来说，对数据进行一定的预处理有助于后续分类任务。然而，论文基于端到端网络的思想构建模型，因此尽可能地对预处理操作进行削减。论文进行的数据预处理方法如下：
+EEG信号具有低信噪比、非平稳、空间变异性等特性，并且通常具有较小规模的数据集，一般来说，对数据进行一定的预处理有助于后续分类任务。然而，论文基于端到端网络的思想构建模型，因此尽可能地对预处理操作进行削减。论文进行的数据预处理操作如下：
 
 \paragraph{数据提取与切片}
 
@@ -129,9 +129,9 @@ MI-EEG原始信号储存在.gdf格式的文件中，除目标脑电信号之外�
 
 \paragraph{标准化}
 
-归一化操作的目的在于对数据的特征尺度进行统一，从而消除奇异数据导致的不良影响，提高模型的训练效率和稳定性。EEG信号常用的归一化方法有Z-score标准化、最大最小值归一化等。
+归一化操作的目的在于对数据的特征尺度进行统一，从而消除奇异数据导致的不良影响，提高模型的训练效率和稳定性。Z-score标准化、最大最小值归一化等方法是EEG信号处理中经典的算法。
 
-Z-score标准化的操作过程如公式~\ref{eq:z-score}~所示，其中，x为原始数据，\(\mu\)表示数据的均值，\(\sigma\)表示数据的标准差，Z-score通过均值和标准差对数据进行操作，使得处理后的数据符合均值为0，方差为1的标准正态分布。
+经过Z-score处理的数据为标准正态分布，其操作过程如公式~\ref{eq:z-score}~所示，其中，\(x\)为原始数据，\(\mu\)表示\(x\)的均值，\(\sigma\)表示\(x\)的标准差。
 \begin{equation}
     x=\frac{x-\mu}{\sigma}
     \label{eq:z-score}
@@ -143,7 +143,7 @@ Z-score标准化的操作过程如公式~\ref{eq:z-score}~所示，其中，x为
     \label{eq:maxmin}
 \end{equation}
 
-因此，为了尽可能保留EEG信号的特征，论文采用Z-Score标准化方法对EEG信号进行处理，以提高模型训练的速度和稳定性。
+因此，为了尽可能保留EEG信号的特征，论文应用Z-Score方法处理EEG信号，进行标准化，以提高模型训练的速度和稳定性。
 
 \paragraph{数据增强}
 
@@ -184,7 +184,7 @@ EEG信号的数据增强方法主要有以下几种：
 
 \paragraph{评价指标}
 
-论文主要使用准确率（Accuracy，Acc）、Kappa一致性系数（Kappa）和标准差（Standard Deviation，SD）作为模型的评价指标。其中，准确率是分类任务中常用的评价指标，用于衡量模型预测结果与真实标签相匹配的比例，其计算方式为正确分类的样本数占总样本数的比例。
+论文主要使用准确率（Accuracy，Acc）、Kappa一致性系数（Kappa）和标准差（Standard Deviation，SD）作为模型的评价指标。其中，准确率是分类任务中常用的评价指标，用于衡量模型预测结果与真实标签相匹配的比例，其计算方式为总样本中，分类正确的样本的比例。
 
 Kappa一致性系数用于衡量模型预测结果与真实标签之间的一致性程度，在类别不平衡或随机猜测具有一定效果的情况下，Kappa一致性系数尤其有效。Kappa系数基于混淆矩阵进行计算，其计算公式如下：
 \begin{equation}\label{eq:kappa}
@@ -192,11 +192,11 @@ Kappa一致性系数用于衡量模型预测结果与真实标签之间的一致
 \end{equation}
 其中，\(P_o\)为观察一致性（Observed Proportion of Agreement），即准确率，\(P_e\)为预期一致性（Expected Proportion of Agreement by Chance），假设样本总量为\(N\)，类别总量为\(c\)，第\(i\)类的真实样本个数为\(x_i\)，预测样本个数为\(p_i\)，则\(P_e\)的计算公式如~\ref{eq:pe}~所示。
 \begin{equation}\label{eq:pe}
-    P_e=\frac{\sum_{i=1}^{c}t_i \times p_i }{N^{2} } 
+    P_e=\frac{\sum_{i=1}^{c}x_i \times p_i }{N^{2} } 
 \end{equation}
 Kappa系数的范围在-1至1区间内，通常大于0，Kappa值越大，表明一致性程度越高，当Kappa值位于[0.61,0.80]区间时，表示预测与真实具有高度的一致性。
 
-标准差用于衡量模型在不同被试之间的稳定性能力，其值越小，表明不同被试的准确率越相近，模型的稳定性越好。其计算公式如下：
+标准差为准确率的标准差，用于衡量模型在不同被试之间的稳定性能力，其值越小，表明不同被试的准确率越相近，模型在不同被试间的性能表现越稳定。准确率标准差的计算方式如下：
 \begin{equation}
     SD=\sqrt{\frac{1}{N-1}  \sum_{i=1}^{N}(x_i-\bar{x} )^{2} } 
     \label{eq:sd}
@@ -205,7 +205,7 @@ Kappa系数的范围在-1至1区间内，通常大于0，Kappa值越大，表明
 
 \paragraph{损失函数及参数配置}
 
-论文使用交叉熵损失函数（Cross Entropy Loss）。交叉熵的概念源自于信息论，用于衡量两个概率分布之间的差异性，交叉熵的值越小，表明两个概率分布越相似，因此，可以通过最小化交叉熵的方式，使得一个概率分布逼近目标概率分布。
+论文使用交叉熵损失函数（Cross Entropy Loss）。交叉熵用于度量预测概率分布与实际概率分布之间的不一致，其值越小，表明两个概率分布越相似，因此，可以通过最小化交叉熵的方式，使得一个概率分布逼近目标概率分布。
 
 交叉熵损失函数是一类在分类任务中广泛应用的损失函数，能够衡量模型预测值与真实标签之间的差异，其计算公式如下：
 \begin{equation}
@@ -214,7 +214,7 @@ Kappa系数的范围在-1至1区间内，通常大于0，Kappa值越大，表明
 \end{equation}
 其中，\(C\)为分类类别数，\(y_i\)表示真实类别，\(\hat{y}_i\)表示模型预测的类别\(i\)的概率。交叉熵损失函数使用真实标签对模型预测的结果进行惩罚，从而促使模型学习到更为准确的预测结果。
 
-论文使用Adam优化算法。对于2A数据集，批大小（batch size）设置为32，2B数据集设置为20；实验迭代次数（epochs）设置为300次；初始学习率（learning rate）设置为1e-3，权重衰减值（weight decay）设置为5e-3。
+论文使用Adam优化算法。对于2A数据集，批大小设置为32，2B数据集设置为20；实验迭代次数设置为300次；学习率的初始值设置为1e-3，权重衰减值设置为5e-3。
 
 \section{实验设计}
 
@@ -277,7 +277,7 @@ DIS-Net中，由于DI-Net的特征提取过程分为时间卷积和空间卷积�
   \label{fig:att-Base}
 \end{figure}
 
-表~\ref{tab:svSE-BaseNet}~展示了S-Temporal-Net、S-Spatial-Net、S-TS-Net三种模型在2A数据集上的对比实验结果。表格中的指标为数据集中九位被试的平均表现。从准确率和一致性分析，S-ST-Net模型的效果优于其他两种模型，与经验相符。此外，S-Temporal-Net模型的效果优于S-Spatial-Net模型，其原因可能在于，空间卷积层沿通道维度的卷积使得数据损失了部分特征，进而减弱了svSE模块提取关键特征权重的能力，而时间卷积层保留了大部分深度信息和通道信息，因此，在时间卷积层之后加入svSE模块能够帮助模型更好地捕捉深度和空间的特征。从标准差分析，S-TS-Net模型的准确率波动幅度较小，对不同被试的MI-EEG分类效果相对均衡，另外两种模型在不同被试间的分类精度则存在较为明显的差异。实验数据显示，S-TS-Net模型取得了更好的效果，因此，论文采用同时在时间卷积层和空间卷积层之后引入svSE模块的方式，将这种结构的模型称为DIS-Net。
+表~\ref{tab:svSE-BaseNet}~展示了S-Temporal-Net、S-Spatial-Net、S-TS-Net三种模型在2A数据集上的对比实验结果。表格中的指标为数据集中九位被试的平均表现。从准确率和一致性分析，S-ST-Net模型的效果优于其他两种模型，与经验相符。此外，S-Temporal-Net模型的效果优于S-Spatial-Net模型，其原因可能在于，空间卷积层沿通道维度的卷积使得数据损失了部分特征，进而减弱了svSE模块提取关键特征权重的能力，而时间卷积层保留了大部分深度信息和通道信息，因此，在时间卷积层之后加入svSE模块能够帮助模型更好地捕捉深度和空间的特征。从标准差分析，S-TS-Net模型的准确率波动幅度较小，对不同被试的MI-EEG分类效果相对均衡，另外两种模型在不同被试间的分类精度则存在较为明显的差异。实验数据显示，S-TS-Net模型取得了更好的效果，因此，论文采用了同时在时间卷积层和空间卷积层之后引入svSE模块的方式，即DIS-Net。
 \begin{table}[ht]
     \centering
     \caption{svSE模块引入位置对比}
@@ -286,9 +286,9 @@ DIS-Net中，由于DI-Net的特征提取过程分为时间卷积和空间卷积�
         \toprule
         Models & ACC(\%) & Kappa & SD \\
         \midrule
-        S-Temporal-Net & 76.09 & 0.68 & 11.97 \\
-        S-Spatial-Net & 75.03 & 0.66 & 12.28 \\
-        S-TS-Net & \textbf{76.16} & \textbf{0.68} & \textbf{11.72} \\
+        S-Temporal-Net & 76.09 & 0.68 & 11.57 \\
+        S-Spatial-Net & 75.03 & 0.66 & 11.88 \\
+        S-TS-Net & \textbf{76.16} & \textbf{0.68} & \textbf{11.33} \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -306,7 +306,7 @@ ShuffleNetV2问题在于，进行Channel Split时，通常是对特征图进行�
     \label{fig:as}
 \end{figure}
 
-对于GAS模块，在保留原有直接传递分支的同时，改动了深度变换的分支的卷积核大小和激活函数，以优化GAS模块对MI-EEG分类任务的性能。对于SAS模块，其在变换分支的设计上采用了与GAS模块一致的改进措施，但去掉了最后的\(1\times1\)卷积层，而由第一个\(1\times1\)卷积层将深度降维至输出维度，再由\(1\times25\)卷积层进行特征的提取。此外，在直接传递分支上,进一步引入了深度维度上的平均池化操作，目的在于在不增添额外参数的前提下，有效减少特征图的数量。相较于原始的Shuffle unit，GAS模块和SAS模块在功能上进行了扩展，不仅包含了特征维度的升维和降维处理，而且还引入了一个可调节的权重参数 \(ratio\)，以动态控制两个分支的特征图数量，从而在处理MI-EEG分类任务时，能够更加灵活和高效地调整特征空间的分布和深度特征的提取。
+对于GAS模块，在保留原有直接传递分支的同时，改动了深度变换的分支的卷积核大小和激活函数，以优化GAS模块对MI-EEG分类任务的性能。对于SAS模块，其在变换分支的设计上采用了与GAS模块一致的改进措施，但去掉了最后的\(1\times1\)卷积层，而由第一个\(1\times1\)卷积层将深度降维至输出维度，再由\(1\times25\)卷积层进行特征的提取。此外，在直接传递分支上,进一步引入了深度维度上的平均池化操作，目的在于在不增添额外参数的前提下，有效减少特征图的数量。相较于原始的Shuffle Unit，GAS模块和SAS模块在功能上进行了扩展，不仅包含了特征维度的升维和降维处理，而且还引入了一个可调节的权重参数 \(ratio\)，以动态控制两个分支的特征图数量，从而在处理MI-EEG分类任务时，能够更加灵活和高效地调整特征空间的分布和深度特征的提取。
 
 论文针对通道混洗算法进行了优化升级，使其具备了对不同数量分组及不同数量组内特征图进行灵活、均衡混洗的能力。这使得无论待重排的组及组内特征图的数量如何变化，该算法都能够实现有效的特征交互与信息整合。
 
@@ -346,8 +346,8 @@ SCoT引入LSTM的方式有两种：在LSTM Layer之前，称之为SCoT-before；
       \toprule
       Models & ACC(\%) & Kappa & SD \\
       \midrule
-      SCoT-Before & 76.25 & 0.68 & 12.49 \\
-      SCoT-After & \textbf{77.89} & \textbf{0.70} & \textbf{11.22} \\
+      SCoT-Before & 76.25 & 0.68 & 11.49 \\
+      SCoT-After & \textbf{77.89} & \textbf{0.70} & \textbf{10.22} \\
       \bottomrule
     \end{tabularx}
 \end{table}
@@ -362,7 +362,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 (2) LS-Net着重提取全局特征，DIS-Net着重提取局部特征，直接以串联方式进行级联容易出现对彼此提取的特征造成干扰的情况，不利于提高特征提取的准确性。
 
-在并行级联中，LS-Net的特征图有两种方式与DIS-Net的特征图进行融合，分别是在空间卷积层之前进行融合（LS-Before），和在空间卷积层之后进行融合（LS-After）。LS-Before意味着将LS-Net的输出特征图以（通道，时间）的特征形式送入空间卷积层，由空间卷积层进行进一步的特征提取，LS-After意味着将LS-Net的输出特征图以（深度，时间）的特征形式送入空间卷积层，将隐含层视为深度维度输出，不再进行空间特征提取。二种不同方式的示意图如图~\ref{fig:fuse}~所示。
+在并行级联中，LS-Net与DIS-Net进行特征融合的方式有两种，分别是在空间卷积层之前进行融合（LS-Before），和在空间卷积层之后进行融合（LS-After）。LS-Before意味着将LS-Net的输出特征图以（通道，时间）的特征形式送入空间卷积层，由空间卷积层进行进一步的特征提取，LS-After意味着将LS-Net的输出特征图以（深度，时间）的特征形式送入空间卷积层，将隐含层视为深度维度输出，不再进行空间特征提取。二种不同方式的示意图如图~\ref{fig:fuse}~所示。
 \begin{figure}
     \centering
     \includegraphics[width=0.6\textwidth]{fuse.pdf}
@@ -379,8 +379,8 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
       \toprule
       Models & ACC(\%) & Kappa & SD \\
       \midrule
-      LS-Before & \textbf{76.78} & \textbf{0.69} & \textbf{11.45} \\
-      LS-After & 75.87 & 0.68 & 11.94 \\
+      LS-Before & \textbf{77.89} & \textbf{0.70} & \textbf{10.22} \\
+      LS-After & 76.98 & 0.69 & 10.71 \\
       \bottomrule
     \end{tabularx}
 \end{table}
@@ -389,13 +389,13 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 \subsection{各模块消融实验}
 
-为了探究论文所提出的各个模块的有效性，并研究不同模块对HA-FuseNet分类效果的影响，论文针对这些模块进行消融实验，即按照模型构建的顺序，从基准模型开始，逐步对新增模块后的模型效果进行实验验证。
+为了探究论文所提出的各个模块的有效性，并研究不同模块对HA-FuseNet分类效果的影响，论文针对这些模块进行消融实验，按照模型构建的顺序，从基准模型开始，逐步对新增模块后的模型效果进行实验验证。
 
 论文对不同结构的模型作以下定义：
 
 (1) Inception：针对EEG信号的特点，修改了卷积核的基础Inception模型，具有三个Inception模块；
 
-(2) Base-Inception：Inception+Bottleneck，即论文所提出的BaseNet。在inception模型的基础上引入反转瓶颈层，并对分支数量、激活函数等进行了调整，同时，针对EEG信号的特性，对卷积核大小进行了调整；
+(2) Base-Inception：Inception+Bottleneck，即论文所提出的BaseNet。在Inception模型的基础上引入反转瓶颈层，并对分支数量、激活函数等进行了调整，同时，针对EEG信号的特性，对卷积核大小进行了调整；
 
 (3) BI+Dense：Inception+Bottleneck+Dense Block，即论文所提出的DI-Net。在BaseNet的基础上，引入了密集连接模块；
 
@@ -405,7 +405,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 (6) DIS+LSTM+SCoT：Inception+Bottleneck+Dense Block+svSE+LSTM+SCoT，即论文所提出的结合了DIS-Net和LS-Net的HA-FuseNet。在DIS+LSTM的基础上，引入了SCoT全局自注意力模块。
 
-论文在2A数据集上进行消融实验，实验结果如表~\ref{tab:ab}~所示，其中，准确率和Kappa系数是九位被试的平均结果。
+论文在2A数据集上进行消融实验，表~\ref{tab:ab}~展示了实验的结果，其中，准确率和Kappa系数是九位被试的平均结果。
 
 \begin{table}[ht]
     \centering
@@ -415,17 +415,17 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
       \toprule
       Models & ACC(\%) & Kappa & SD \\
       \midrule
-      Inception &67.40&0.23&17.16\\
-      Base-Inception &72.35&0.63&13.27\\
-      BI+Dense &74.42&0.65& 12.92\\
-      DI+svSE &76.16&0.68&11.72\\
-      DIS+LSTM &76.78 &0.69 & 11.45\\
-      DIS+LSTM+SCoT &77.89&0.70&11.22 \\
+      Inception &67.40&0.56&16.15\\
+      Base-Inception &72.35&0.63&12.27\\
+      BI+Dense &74.42&0.65& 11.92\\
+      DI+svSE &76.16&0.68&11.33\\
+      DIS+LSTM &76.78 &0.69 & 10.72\\
+      DIS+LSTM+SCoT &77.89&0.70&10.22 \\
       \bottomrule
     \end{tabularx}
 \end{table}
 
-实验数据显示，Inception+Bottleneck+Dense Block+svSE+LSTM+SCoT结构，即本文所提出的最终模型HA-FuseNet在MI-EEG分类任务上表现最好，准确率、Kappa一致性系数分别达到了77.89\%、0.70，标准差达到了11.22，证明在不同被试上，HA-FuseNet取得了最好的分类性能，且被试之间的准确率差异较小，具有较好的稳定性。
+实验数据显示，Inception+Bottleneck+Dense Block+svSE+LSTM+SCoT结构，即本文所提出的最终模型HA-FuseNet在MI-EEG分类任务上表现最好，准确率、Kappa一致性系数分别达到了77.89\%、0.70，标准差达到了10.22，证明在不同被试上，HA-FuseNet取得了最好的分类性能，且被试之间的准确率差异较小，具有较好的稳定性。
 
 随着模型的逐渐复杂，准确率、Kappa一致性呈现上升趋势，标准差呈现下降趋势，证明了每个模块的有效性。此外，对Inception进行MI-EEG分类任务的针对性改进后得到的BaseNet具有最明显的提升，此后依次为多尺度密集连接模块、svSE模块、SCoT模块、LSTM模块。从对最终模型的贡献度来看，可能说明了相较于循环神经网络，卷积神经网络在MI-EEG分类任务上具有更大的优势。
 
@@ -441,17 +441,17 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 (1) HA-FuseNet在未进行数据增强的被试内实验中，取得了最优的准确率和Kappa一致性，且准确率标准差达到了10.22，证明了HA-FuseNet具有优秀的MI-EEG分类能力，且对不同的被试具有较好的稳定性；
 
-(2) 使用SG轻量化卷积模块的HA-FuseNet(SG)在未进行数据增强的被试内实验中，尽管性能较HA-FuseNet有所下降，但准确率和Kappa系数仅次于ShallowConvNet，HA-FuseNet(SG)的平均准确率较HA-FuseNet下降了约0.86个百分点，在一些被试上，其准确率高于HA-FuseNet；
+(2) 使用SG轻量化卷积模块的HA-FuseNet(SG)在未进行数据增强的被试内实验中，尽管性能较HA-FuseNet有所下降，但准确率和Kappa系数仅次于ShallowConvNet，且标准差低于ShallowConvNet，HA-FuseNet(SG)的平均准确率较HA-FuseNet下降了约0.86个百分点，在一些被试上，其准确率高于HA-FuseNet；
 
 (3) HA-FuseNet在被试间实验中，取得了最高的平均准确率和Kappa一致性，证明了HA-FuseNet具有优秀的跨被试泛化能力。
 
-实验结果证明了论文所提出模型的有效性，能够使用较小规模的数据集取得优秀的性能表现，且具有相较于基准模型最优的分类精度和跨被试泛化能力，而使用数据增强算法后，HA-FuseNet的性能表现能够得到进一步的增强。
+实验结果证实，论文所提出的模型HA-FuseNet具有一定的有效性，能够使用较小规模的数据集取得优秀的性能表现，且具有相较于基准模型最优的分类精度和跨被试泛化能力，而使用数据增强算法后，HA-FuseNet的性能表现能够得到进一步的增强。
 
 \paragraph{被试内对比实验}
 
-2A数据集共有九名被试，每名被试具有独立的训练集和测试集，被试内对比实验即使用每名被试的训练集进行训练，在对应的测试集上进行测试，即为每名被试训练了一个模型。
+2A数据集共有九名被试，每名被试具有独立的训练集和测试集，被试内对比实验即使用每名被试对应的训练集和测试集，即为每名被试训练了一个模型。
 
-表~\ref{tab:2acomparein}~展示了不同模型进行被试内实验的准确率，表~\ref{tab:2acompareinsd}~展示了被试内实验的Kappa一致性系数和标准差，其中，Kappa一致性系数为九名被试的平均值。需要说明的是，表~\ref{tab:2acomparein}~和~\ref{tab:2acompareinsd}~展示的是未进行数据增强的结果，即对于每名被试，使用数据规模为288的训练集。为了更直观地对数据进行展示，在表~\ref{tab:2acomparein}~和表~\ref{tab:2acompareinsd}~中通过加粗的方式对基准模型中的最优值进行了强调。
+表~\ref{tab:2acomparein}~展示了不同模型进行被试内实验的准确率，表~\ref{tab:2acompareinsd}~展示了被试内实验的Kappa一致性系数和标准差，其中，Kappa一致性系数为九名被试的平均值，标准差为准确率标准差。需要说明的是，表~\ref{tab:2acomparein}~和~\ref{tab:2acompareinsd}~展示的是未进行数据增强的结果，即对于每名被试，使用数据规模为288的训练集。为了更直观地对数据进行展示，在表~\ref{tab:2acomparein}~和表~\ref{tab:2acompareinsd}~中通过加粗的方式对基准模型中的最优值进行了强调。
 
 \begin{table}[ht]
     \centering
@@ -534,7 +534,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 对比基准模型和论文提出的模型的实验数据，可以发现HA-FuseNet取得了最高的平均准确率和Kappa值，且在1号被试和6号被试上取得了最高的准确率，对于其他模型平均表现较差的2号和4号被试，HA-FuseNet也取得了良好的性能。同时，HA-FuseNet的准确率标准差低于具有次优平均准确率和Kappa值的ShallowConvNet；使用SG轻量化卷积模块的HA-FuseNet(SG)取得了仅次于ShallowConvNet的准确率和Kappa一致性，其准确率的标准差同样低于ShallowConvNet。相较于HA-FuseNet，HA-FuseNet(SG)的平均准确率仅下降了约0.86个百分点。
 
-实验证明了HA-FuseNet和HA-FuseNet(SG)的有效性，能够在使用小规模数据集的情况下取得较好的性能表现。此外，通过对各项模型的实验结果分析，印证了先前研究中，关于浅层网络在小规模数据集的MI-EEG分类任务中性能表现优良的理论，而HA-FuseNet通过多尺度密集连接同时利用不同尺度的浅层特征和深层特征，同时，通过全局自注意力机制和局部混合注意力机制进行多维的加权，利用LSTM对时间维度的长短期依赖关系进行提取，综合取得了较基准模型更好的性能。
+实验证明了HA-FuseNet和HA-FuseNet(SG)的有效性，能够在使用小规模数据集的情况下取得较好的性能表现。此外，通过对各项模型的实验结果分析，印证了先前研究中，关于浅层网络在小规模数据集的MI-EEG分类任务中性能表现优良的理论，而多尺度密集连接使得HA-FuseNet能够同时利用多尺度的低级特征和高级语义信息，同时，通过全局自注意力机制和局部混合注意力机制进行多维的加权，利用LSTM对时间维度的长短期依赖关系进行提取，综合取得了较基准模型更好的性能。
 
 \paragraph{数据增强被试内对比实验}
 
@@ -610,9 +610,9 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
     \end{tabularx}
 \end{table}
 
-值得注意的是，EEGConformer的性能反而出现了下降，这说明基于频率混叠的数据增强算法或许并不适用于Transformer架构，这可能说明了EEGConformer将Transformer直接引入卷积层之后形成串联模型的方式具有受限的提取不同频率成分的能力。如果将Transformer应用于MI-EEG分类任务中，采用合适的滤波器进行数据预处理，并基于其他方法进行数据增强从而形成较大规模的数据集，可能是更适合的方法。
+值得注意的是，EEGConformer的性能反而出现了下降，这说明基于频率混叠的数据增强算法或许并不适用于Transformer架构，这可能说明了EEGConformer将Transformer直接引入卷积层之后形成串联模型的方式具有受限的提取不同频率成分的能力。如果要将Transformer应用于MI-EEG分类任务中，采用合适的滤波器进行数据预处理，并基于其他方法进行数据增强从而形成较大规模的数据集，可能是更适合的方法，例如，在EEGConformer论文中，使用了基于滑动窗口的数据增强方法\cite{song2022eeg}。
 
-此外，表~\ref{tab:2acompareagsd}~表明进行数据增强之后，除EEGConformer之外，其他模型的Kappa一致性均有所上升。论文所提出的HA-FuseNet的kappa值达到了0.76，准确率的标准差下降为10.90，仅次于DeepConvNet的10.73和LMDA-Net的10.74，表明HA-FuseNet的在不同被试间的稳定性得到了进一步的加强。
+此外，表~\ref{tab:2acompareagsd}~表明进行数据增强之后，除EEGConformer之外，其他模型的Kappa一致性均有所上升。论文所提出的HA-FuseNet的Kappa值达到了0.76，准确率的标准差下降为10.09，为所有模型中的最低值，表明HA-FuseNet的在不同被试间的稳定性得到了进一步的加强。
 
 \paragraph{被试间对比实验}
 
@@ -634,9 +634,9 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 (3) 所有基准模型在被试2号、4号、6号的跨被试实验中，平均性能表现较差。
 
-对比基准模型和论文提出的模型的实验数据，可以发现论文提出的HA-FuseNet取得了最优的平均准确率和Kappa系数，且比DeepConvNet分别提升了约0.63\%和0.11，HA-FuseNet的准确率标准差达到了11.06，仅比DeepConvNet上升了约0.52个百分点。
+对比基准模型和论文提出的模型的实验数据，可以发现论文提出的HA-FuseNet取得了最优的平均准确率和Kappa系数，且平均准确率比DeepConvNet提升了约0.63\%，HA-FuseNet的准确率标准差达到了11.06，仅比DeepConvNet上升了约0.52。
 
-此外，论文提出的HA-FuseNet在被试1/2/3/7/8/9号上的表现优于DeepConvNet，仅在被试4/5/6号上的表现低于DeepConvNet。但应当注意到，在基准模型平均性能较差的被试2/4/6号上，HA-FuseNet取得了较为均衡的分类精度，在被试2号中，HA-FuseNet的精度仅低于EEGNet，被试4号中，仅低于DeepConvNet和EEGNet，被试6号中，仅低于EEGInception。
+此外，论文提出的HA-FuseNet在被试1/2/3/7/8/9号上的表现优于DeepConvNet，仅在被试4/5/6号上的表现低于DeepConvNet。但应当注意到，在基准模型平均性能较差的被试2/4/6号上，HA-FuseNet取得了较为均衡的分类精度，在被试2号中，HA-FuseNet的精度仅低于EEGNet，被试4号中，仅低于DeepConvNet和EEGNet。
 
 实验证实了论文提出的HA-FuseNet在具有22通道的2A数据集上具有良好的分类性能和跨被试泛化能力，能够满足论文的研究目标。
 
@@ -724,9 +724,9 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 对比基准模型的实验数据，可以发现以下结果：
 
-(1) EEGInception在基准模型中具有最高的平均准确率和Kappa系数，其表现超过了ShallowConvNet，后者在2A数据集上具有最优的准确率和一致性表现。这说明了EEGInception具有更好的适应低空间分辨率场景的能力，而ShallowConvNet的适应性则有所下降，这种差异可能来源于二者的架构差别，EEGInception着重提取时间维度特征，而ShallowConvNet对时间维度特征和空间维度特征采用了相同的策略；
+(1) EEGInception在基准模型中具有最高的平均准确率和Kappa系数，其表现超过了ShallowConvNet，后者在2A数据集上具有最优的准确率和一致性表现。这说明了EEGInception具有更好的适应低空间分辨率场景的能力，而ShallowConvNet的适应性则有所下降，这种差异可能来源于二者的架构差别，EEGInception着重提取时间维度特征，而ShallowConvNet对时域和空域的特征应用了相同的策略；
 
-(2) EEGResNet取得了最优的准确率标准差，表明在不同被试之间的性能较为稳定，然而，EEGResNet的平均准确率为68.51\%，相较于EEGInception降低了6.31个百分点，说明其分类精度相对较差；
+(2) EEGResNet取得了最优的准确率标准差，表明在不同被试之间的性能较为稳定，然而，EEGResNet的平均准确率为68.51\%，相较于EEGInception降低了6.07个百分点，说明其分类精度相对较差；
 
 \begin{table}[ht]
     \centering
@@ -794,7 +794,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
     \end{tabularx}
 \end{table}
 
-(3) 2A数据集上，各个基准模型取得的平均准确率的均值约为68.57\%，高于平均值的模型有ShallowConvNet、DeepConvNet、EEGNet和LMDA-Net；2B数据集上，各个基准模型取得的平均准确率的均值约为70.74\%，高于平均值的模型有DeepConvNet、EEGInception和LMDA-Net；此外，相较于2A数据集，EEGResNet、EEGConformer在2B数据集上的准确率更接近均值，DeepConvNet、LMDA-Net领先均值的幅度则降低了。这或许说明了空间分辨率较高时，EEG信号特征明显，因此浅层网络就能够取得较好的效果，而空间分辨率较低时，需要更为复杂的网络提取EEG信号的特征。此外，LMDA-Net证明了针对EEG信号特性设计的注意力模块能够取得良好的效果。
+(3) 2A数据集上，各个基准模型取得的平均准确率的均值约为69.47\%，高于平均值的模型有ShallowConvNet、DeepConvNet和LMDA-Net；2B数据集上，各个基准模型取得的平均准确率的均值约为70.74\%，高于平均值的模型有DeepConvNet、EEGInception和LMDA-Net；此外，相较于2A数据集，EEGResNet、EEGConformer在2B数据集上的准确率更接近均值，EEGNet落后均值的幅度增加，DeepConvNet、LMDA-Net领先均值的幅度则降低了。这或许说明了空间分辨率较高时，EEG信号特征明显，因此浅层网络就能够取得较好的效果，而空间分辨率较低时，需要更为复杂的网络提取EEG信号的特征。此外，LMDA-Net证明了针对EEG信号特性设计的注意力模块能够取得良好的效果。
 
 基准模型的实验结果印证了论文设计模型的思路的正确性，包括更关注时间维度特征、同时利用深层和浅层特征、针对EEG信号特性设计注意力模块等。这些设计使得HA-FuseNet对空间分辨率具有低依赖性，即对于高空间分辨率和低空间分辨率的场景，都能取得较好的性能表现。
 
@@ -803,6 +803,14 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 \paragraph{被试间对比实验}
 
 被试间对比实验中，对于一名被试，使用其他所有被试的训练集为该被试的训练集，即训练集的数据规模为\(120\times8\)，测试集为该被试的测试集，数据规模仍然为120。
+
+表~\ref{tab:2bcomparecross}~展示了2B数据集上HA-FuseNet和基准模型进行被试间实验的准确率，其中，最后一列为九名被试的平均准确率。表~\ref{tab:2bcomparecrosssd}~展示了被试间实验的Kappa一致性系数和准确率标准差，其中，Kappa系数为九名被试的平均值。表~\ref{tab:2bcomparecross}~和表~\ref{tab:2bcomparecrosssd}~中对基准模型中的最优值进行了加粗展示。
+
+对比基准模型的实验数据，可以发现以下结果：
+
+(1) EEGInception在基准模型之中具有最优的准确率和Kappa系数，准确率平均值达到了75.64\%，高于次优模型ShallowConvNet大约0.12个百分点；EEGInception的准确率标准差为7.29，约比ShallowConvNet高0.11。这说明EEGInception的分类精度高于ShallowConvNet，但稳定性相对较差。相较于被试内实验，ShallowConvNet在被试间实验中的性能获得了明显的提升，其原因可能是较大的数据规模、较多变的数据分布弥补了ShallowConvNet学习低空间分辨率场景特征能力的不足，相当于ShallowConvNet经过了基于样本集合的数据增强。尽管如此，EEGInception仍然取得了最高的分类精度；
+
+(2) EEGConformer取得了最低的准确率标准差，为6.44，但EEGConformer的平均准确率为基准模型中的最低值，因此，虽然EEGConformer在不同被试之间的稳定性相对较优，但较低的分类精度表明其综合性能仍然较差。
 
 \begin{table}[h]
     \centering
@@ -850,7 +858,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
     \end{subtable}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
     \centering
     \caption{HA-FuseNet与基准模型在2B数据集上的被试间实验结果对比（Kappa/SD）}
     \label{tab:2bcomparecrosssd}
@@ -870,14 +878,6 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
       \bottomrule
     \end{tabularx}
 \end{table}
-
-表~\ref{tab:2bcomparecross}~展示了2B数据集上HA-FuseNet和基准模型进行被试内实验的准确率，其中，最后一列为九名被试的平均准确率。表~\ref{tab:2bcomparecrosssd}~展示了被试内实验的Kappa一致性系数和准确率标准差，其中，Kappa系数为九名被试的平均值。表~\ref{tab:2bcomparecross}~和表~\ref{tab:2bcomparecrosssd}~中对基准模型中的最优值进行了加粗展示。
-
-对比基准模型的实验数据，可以发现以下结果：
-
-(1) EEGInception在基准模型之中具有最优的准确率和Kappa系数，准确率平均值达到了75.64\%，高于次优模型ShallowConvNet大约0.08个百分点；EEGInception的准确率标准差为7.29，约比ShallowConvNet高0.11。这说明EEGInception的分类精度高于ShallowConvNet，但稳定性相对较差。相较于被试内实验，ShallowConvNet在被试间实验中的性能获得了明显的提升，其原因可能是较大的数据规模、较多变的数据分布弥补了ShallowConvNet学习低空间分辨率场景特征能力的不足，相当于ShallowConvNet经过了基于样本集合的数据增强。尽管如此，EEGInception仍然取得了最高的分类精度；
-
-(2) EEGConformer取得了最低的准确率标准差，为6.44，但EEGConformer的平均准确率为基准模型中的最低值，因此，虽然EEGConformer在不同被试之间的稳定性相对较优，但较低的分类精度表明其综合性能仍然较差。
 
 实验数据显示，论文提出的HA-FuseNet的平均准确率和Kappa系数均优于基准模型，分别为76.86\%和0.53，其准确率标准差为6.68，仅高于EEGConformer。然而，考虑到EEGConformer较差的分类精度，仍然可以认为HA-FuseNet的综合性能超过了所有的基准模型。这与在2A数据集上的实验结论相符，HA-FuseNet具有优秀的分类精度和跨被试泛化性能力，且可以使用小规模数据集进行训练，同时，在不同精度的空间分辨率条件下都具有较为稳定的性能。实验证明了HA-FuseNet的有效性。
 
