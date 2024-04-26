@@ -295,22 +295,7 @@ DIS-Net中，由于DI-Net的特征提取过程分为时间卷积和空间卷积�
 
 \paragraph{不同轻量化模块对比}
 
-为了对模型进行轻量化，论文在SG模块之外，基于ShuffleNetV2提出了GAS/SAS模块。
-ShuffleNetV2问题在于，进行Channel Split时，通常是对特征图进行均匀划分，难以灵活调整直传特征图的比例，可能导致对重要特征信息的有效利用率不足。此外，ShuffleNetV2的基础结构在深度维度上的特征变换主要依赖于\(1\times1\)卷积，这在一定程度上限制了其内在的深度特征变换能力。
-
-为了提升ShuffleNetV2基本模块在深度特征变换方面的能力，论文提出了一种可调节分支比例的Shuffle模块（Adaptive Shuffle Module, AS模块），其架构如图~\ref{fig:as}~(a)所示。假设卷积层的输入深度为 \(D_{in}\)，输出深度为 \(D_{out}\)，针对不同的输入输出深度关系（即 \(D_{in} \le D_{out}\) 和 \(D_{in} > D_{out}\) ），论文对AS模块进行了优化，分别形成了图~\ref{fig:as}~(b)所示的GAS模块（Growing Adjustable Shuffle Module）和图~\ref{fig:as}~(c)所示的SAS模块（Straight Adjustable Shuffle Module）。图中的DW Conv指深度卷积（Depthwise Convolution），\(ratio\)为可调的权重参数。
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{AS.pdf}
-    \caption{AS、GAS、SAS模块结构}
-    \label{fig:as}
-\end{figure}
-
-对于GAS模块，在保留原有直接传递分支的同时，改动了深度变换的分支的卷积核大小和激活函数，以优化GAS模块对MI-EEG分类任务的性能。对于SAS模块，其在变换分支的设计上采用了与GAS模块一致的改进措施，但去掉了最后的\(1\times1\)卷积层，而由第一个\(1\times1\)卷积层将深度降维至输出维度，再由\(1\times25\)卷积层进行特征的提取。此外，在直接传递分支上,进一步引入了深度维度上的平均池化操作，目的在于在不增添额外参数的前提下，有效减少特征图的数量。相较于原始的Shuffle Unit，GAS模块和SAS模块在功能上进行了扩展，不仅包含了特征维度的升维和降维处理，而且还引入了一个可调节的权重参数 \(ratio\)，以动态控制两个分支的特征图数量，从而在处理MI-EEG分类任务时，能够更加灵活和高效地调整特征空间的分布和深度特征的提取。
-
-论文针对通道混洗算法进行了优化升级，使其具备了对不同数量分组及不同数量组内特征图进行灵活、均衡混洗的能力。这使得无论待重排的组及组内特征图的数量如何变化，该算法都能够实现有效的特征交互与信息整合。
-
-为了验证更适合的轻量化卷积模块，论文在BCI Competition IV Dataset 2A数据集上进行了实验验证。由于轻量化卷积主要针对密集连接进行改进，实验使用DI-Net，并固定了Inception层数、密集连接层数、\(ratio\)等超参数。表~\ref{tab:lite}~展示了GAS/SAS、SG、Ghost和原始密集连接（Origin）模块的对比实验结果，其指标为参数量（Parameters）、浮点运算数（Floating Point Operations，FLOPs）和准确率，其中，准确率为九位被试的平均值。
+为了验证更适合的轻量化卷积模块，论文在BCI Competition IV Dataset 2A数据集上进行了实验验证。由于轻量化卷积主要针对密集连接进行改进，实验使用DI-Net，并固定了Inception层数、密集连接层数、\(ratio\)等超参数。对\(ratio\)进行固定而非设置为可训练参数的原因是控制模块参数量的大小，避免轻量化卷积模块向原始密集连接模块趋近。表~\ref{tab:lite}~展示了ShuffleNet、GhostNet、SG和原始密集连接（Origin）模块的对比实验结果，其指标为参数量（Parameters）、浮点运算数（Floating Point Operations，FLOPs）和准确率，其中，准确率为九位被试的平均值。
 \begin{table}[ht]
     \centering
     \caption{轻量化卷积模块实验结果对比}
@@ -319,17 +304,18 @@ ShuffleNetV2问题在于，进行Channel Split时，通常是对特征图进行�
       \toprule
       Models & Paramters & FLOPs & ACC(\%) \\
       \midrule
-      GAS/SAS & 7.31K & 130.37M & 72.96\\
+      ShuffleNet & 7.31K & 130.37M & 72.96\\
+      GhostNet & \textbf{7.27K} & \textbf{129.93M} & 73.14\\
       SG & 7.36K & 133.04M & \textbf{73.71}\\
-      Ghost & \textbf{7.27K} & \textbf{129.93M} & 73.14\\
       \midrule
       Origin & 29.99K & 690.37M & 74.42\\
       \bottomrule
     \end{tabularx}
 \end{table}
-数据显示，Ghost模块具有最优的轻量化效果，而SG模块在三种轻量化模块中取得了最优的性能，超越了原始Ghost模块，这证明了对Ghost模块改进的有效性，即使用可分离卷积与逐点卷积能够促进特征图之间的交互，从而更好地对特征进行拟合。
 
-实验证明，相较于原始密集连接模块，SG模块的轻量化效果明显；相较于Ghost模块、GAS/SAS模块，SG模块取得了更优的性能。这证明了SG模块的有效性。论文使用SG模块进行模型的轻量化改进。
+数据显示，ShuffleNet的轻量化效果较GhostNet较差，因此，论文选择基于GhostNet进行改进。这可能是因为相较于ShuffleNet，GhostNet对特征图的处理更充分，且引入了\(ratio\)参数用以控制不同操作分支的特征图的数量，相较于ShuffleNet具有更好的灵活性。在表~\ref{tab:lite}~中，GhostNet具有最优的轻量化效果，而SG模块在三种轻量化模块中取得了最优的性能，超越了GhostNet和ShuffleNet，这证明了对GhostNet改进的有效性，即使用可分离卷积与逐点卷积能够促进特征图之间的交互，从而更好地对特征进行拟合。
+
+实验证明，相较于原始密集连接模块，SG模块的轻量化效果明显；相较于GhostNet、ShuffleNet，SG模块取得了更优的性能。这证明了SG模块的有效性。论文使用SG模块进行模型的轻量化改进。
 
 \subsection{LS-Net实验设计}
 
@@ -433,7 +419,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 \subsection{BCI Competition IV Dataset 2A数据集上的对比实验}
 
-在相同的实验设置下，论文在BCI Competition IV Dataset 2A数据集上进行HA-FuseNet与其他模型的被试内（Subject Dependent）对比实验和被试间（Subject Independent）对比实验，以对HA-FuseNet相对于其他模型在MI-EEG分类任务中的性能进行评估。
+在相同的实验设置下，论文在BCI Competition IV Dataset 2A数据集上进行HA-FuseNet与主流模型的被试内（Subject Dependent）对比实验和被试间（Subject Independent）对比实验，以对HA-FuseNet相对于其他模型在MI-EEG分类任务中的性能进行评估。
 
 论文所使用的与HA-FuseNet进行对比的模型中，ShallowConvNet\cite{schirrmeister2017deep}与DeepConvNet\cite{schirrmeister2017deep}是基于卷积神经网络搭建；EEGNet\cite{lawhern2018eegnet}参考了BCI领域经典算法FBCSP的思想，将深度可分离卷积引入了网络结构中；EEGResNet\cite{HBM:HBM23730}基于残差神经网络\cite{he2016deep}构建；EEGInception\cite{zhang2021eeg}使用了Inception多分支和残差连接；EEGConformer\cite{song2022eeg}使用Transformer\cite{vaswani2017attention}与卷积神经网络串联，用以EEG信号的解码；LMDA-Net\cite{miao2023lmda}提出了一种新颖的通道注意力模块和深度注意力模块，基于ShallowConvNet和EEGNet进行了改进。
 
@@ -708,7 +694,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 \subsection{BCI Competition IV Dataset 2B数据集上的对比实验}
 
-为了评估论文所提出的模型在不同硬件设施（电极数量）的场景下的性能，论文在BCI Competition IV Dataset 2B数据集上进行HA-FuseNet与其他模型的被试内和被试间对比实验。相较于2A数据集的22通道，2B数据集仅使用3个通道记录EEG数据，对模型在较低空间分辨率条件下的性能提出了挑战。2B数据集上的实验未进行数据增强，以对模型在小规模数据集上的表现进行评估。
+为了评估论文所提出的模型在不同硬件设施（电极数量）的场景下的性能，论文在BCI Competition IV Dataset 2B数据集上进行HA-FuseNet与主流模型的被试内和被试间对比实验。相较于2A数据集的22通道，2B数据集仅使用3个通道记录EEG数据，对模型在较低空间分辨率条件下的性能提出了挑战。2B数据集上的实验未进行数据增强，以对模型在小规模数据集上的表现进行评估。
 
 论文所使用的与HA-FuseNet进行对比的基准模型与前文相同，包括ShallowConvNet\cite{schirrmeister2017deep}、DeepConvNet\cite{schirrmeister2017deep}、EEGNet\cite{lawhern2018eegnet}、EEGResNet\cite{HBM:HBM23730}、EEGInception\cite{zhang2021eeg}、EEGConformer\cite{song2022eeg}和LMDA-Net\cite{miao2023lmda}。
 
@@ -883,4 +869,4 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 \section{本章小结}
 
-本章主要对于第三章构建的MI-EEG分类网络HA-FuseNet进行了消融实验、对比实验和跨被试泛化性实验。首先，介绍了实验使用的软硬件环境。其次，介绍了实验所使用的数据集以及对数据进行处理的方法，同时介绍了实验中所使用的基本配置，包括超参数、损失函数、评估指标等。实验使用BCI Competition IV Dataset 2A数据集和2B数据集，其具有不同的通道数，能够对模型在不同空间分辨率下的性能进行评估。最后，介绍了具体进行的实验：首先，设计并进行实验，验证不同的网络结构对HA-FuseNet性能的影响，从而选择最合适的架构方式；其次，通过在不同数据集上，与当前的多种MI-EEG分类模型进行被试内对比实验、被试间对比实验，评估HA-FuseNet的分类精度、被试间稳定性、跨被试泛化性、跨空间分辨率泛化性能力。实验结果证明，HA-FuseNet相较于基准模型取得了综合最优的各项性能，从而证明了论文所提出方法的有效性。
+本章主要对于第三章构建的MI-EEG分类网络HA-FuseNet进行了消融实验、对比实验和跨被试泛化性实验。首先，介绍了实验使用的软硬件环境。其次，介绍了实验所使用的数据集以及对数据进行处理的方法，同时介绍了实验中所使用的基本配置，包括超参数、损失函数、评估指标等。实验使用BCI Competition IV Dataset 2A数据集和2B数据集，其具有不同的通道数，能够对模型在不同空间分辨率下的性能进行评估。最后，介绍了具体进行的实验：首先，设计并进行实验，验证不同的网络结构对HA-FuseNet性能的影响，从而选择最合适的架构方式；其次，通过在不同数据集上，与当前的多种主流MI-EEG分类模型进行被试内对比实验、被试间对比实验，评估HA-FuseNet的分类精度、被试间稳定性、跨被试泛化性、跨空间分辨率泛化性能力。实验结果证明，HA-FuseNet相较于基准模型取得了综合最优的各项性能，从而证明了论文所提出方法的有效性。

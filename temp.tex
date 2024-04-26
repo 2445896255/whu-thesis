@@ -276,3 +276,21 @@ scot-before
 (3) 轻量化：具有较少的参数规模，使得模型能够在计算资源有限的边缘设备上高效运行，从而提升实时响应性能，促进运动想象脑电图分类技术在实际应用中的部署与普及。
 
 为了实现研究目标，论文基于现有方法进行改进，
+
+
+
+
+为了对模型进行轻量化，论文在SG模块之外，基于ShuffleNetV2提出了GAS/SAS模块。
+ShuffleNetV2问题在于，进行Channel Split时，通常是对特征图进行均匀划分，难以灵活调整直传特征图的比例，可能导致对重要特征信息的有效利用率不足。此外，ShuffleNetV2的基础结构在深度维度上的特征变换主要依赖于\(1\times1\)卷积，这在一定程度上限制了其内在的深度特征变换能力。
+
+为了提升ShuffleNetV2基本模块在深度特征变换方面的能力，论文提出了一种可调节分支比例的Shuffle模块（Adaptive Shuffle Module, AS模块），其架构如图~\ref{fig:as}~(a)所示。假设卷积层的输入深度为 \(D_{in}\)，输出深度为 \(D_{out}\)，针对不同的输入输出深度关系（即 \(D_{in} \le D_{out}\) 和 \(D_{in} > D_{out}\) ），论文对AS模块进行了优化，分别形成了图~\ref{fig:as}~(b)所示的GAS模块（Growing Adjustable Shuffle Module）和图~\ref{fig:as}~(c)所示的SAS模块（Straight Adjustable Shuffle Module）。图中的DW Conv指深度卷积（Depthwise Convolution），\(ratio\)为可调的权重参数。
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{AS.pdf}
+    \caption{AS、GAS、SAS模块结构}
+    \label{fig:as}
+\end{figure}
+
+对于GAS模块，在保留原有直接传递分支的同时，改动了深度变换的分支的卷积核大小和激活函数，以优化GAS模块对MI-EEG分类任务的性能。对于SAS模块，其在变换分支的设计上采用了与GAS模块一致的改进措施，但去掉了最后的\(1\times1\)卷积层，而由第一个\(1\times1\)卷积层将深度降维至输出维度，再由\(1\times25\)卷积层进行特征的提取。此外，在直接传递分支上,进一步引入了深度维度上的平均池化操作，目的在于在不增添额外参数的前提下，有效减少特征图的数量。相较于原始的Shuffle Unit，GAS模块和SAS模块在功能上进行了扩展，不仅包含了特征维度的升维和降维处理，而且还引入了一个可调节的权重参数 \(ratio\)，以动态控制两个分支的特征图数量，从而在处理MI-EEG分类任务时，能够更加灵活和高效地调整特征空间的分布和深度特征的提取。
+
+论文针对通道混洗算法进行了优化升级，使其具备了对不同数量分组及不同数量组内特征图进行灵活、均衡混洗的能力。这使得无论待重排的组及组内特征图的数量如何变化，该算法都能够实现有效的特征交互与信息整合。

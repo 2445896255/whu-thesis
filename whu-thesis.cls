@@ -1506,9 +1506,9 @@ JFM = zh_CN / { \exp_not:o \g__whu_option_punct_tl , vert }
 {
 \tl_if_empty:NF \g__whu_element_achievements_tl
 {
-\chapter * { 攻博期间发表的科研成果目录 }
+\chapter * {硕士期间研究成果 }
 \phantomsection
-\addcontentsline { toc } { chapter } { 攻博期间发表的科研成果目录 }
+\addcontentsline { toc } { chapter } { 硕士期间研究成果 }
 \tl_if_eq:NnTF \g__whu_style_bib_style_tl { author-year }
 {
 \begin { enumerate } [ label = {} , left = 0 pt .. 0 pt ]
