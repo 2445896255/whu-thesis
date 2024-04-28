@@ -1,6 +1,6 @@
 % chapter2 基础
 
-\chapter{运动想象脑电图分类和深度神经网络基础}
+\chapter{相关理论与技术}
 
 \section{脑电生理基础}
 
@@ -8,27 +8,27 @@
 
 大脑作为神经活动的中枢处理器，其活动产生的多元生物电信号揭示了人体的认知行为、感官体验、情绪调控等多种思维活动和行动指令。通过现代神经科学技术，如脑电图、功能性磁共振成像、近红外光谱成像等手段，人类能够探测并解读这些生物信号，从而了解大脑内部的运作机制。
 
-大脑皮层是大脑最外部的灰质结构，承载了复杂的高级认知功能。大脑皮层中与运动相关的结构主要包括初级运动皮层（Primary Motor Cortex，M1）、辅助运动区（Supplementary Motor Area，SMA）、运动前区（Premotor Cortex，PMC）、顶叶皮层（Parietal Lobe）、前额叶皮层（Prefrontal Lobe，PFC）\cite{ZDYS201809014}，此外，位于基底神经节的纹状体（Striatum）也参与其中。运动想象（Motor Imagery，MI）是一种心理活动，指的是在没有实际执行肢体运动的情况下，个体在脑海中模拟或重现某项运动的过程，研究发现，当个体执行运动想象任务时，即使没有运动执行，人脑中的相关脑区仍会呈现激活状态，其中，主要激活的是辅助运动区，辅助运动区在运动执行任务以及运动想象任务中与运动前区、感觉运动皮层区、默认网络结构都存在双向连接\cite{solodkin2004fine}，并且存在指向纹状体的单向连接\cite{watanabe2015effects}。相对于运动执行任务，运动想象任务中主运动皮层也存在激活，但激活程度不及运动执行任务\cite{solodkin2004fine,kasess2008suppressive}。大脑皮层中各运动区的位置如图~\ref{fig:brain}~所示。
-\begin{figure}
+大脑皮层是大脑最外部的灰质结构，承载了复杂的高级认知功能。大脑皮层中与运动相关的结构主要包括初级运动皮层、辅助运动区、运动前区、顶叶皮层、前额叶皮层\cite{ZDYS201809014}，此外，位于基底神经节的纹状体也参与其中。运动想象是一种心理活动，指的是在没有实际执行肢体运动的情况下，个体在脑海中模拟或重现某项运动的过程，研究发现，当个体执行运动想象任务时，即使没有运动执行，人脑中的相关脑区仍会呈现激活状态，其中，主要激活的是辅助运动区，辅助运动区在运动执行任务以及运动想象任务中与运动前区、感觉运动皮层区、默认网络结构都存在双向连接\cite{solodkin2004fine}，并且存在指向纹状体的单向连接\cite{watanabe2015effects}。相对于运动执行任务，运动想象任务中主运动皮层也存在激活，但激活程度不及运动执行任务\cite{solodkin2004fine,kasess2008suppressive}。大脑皮层中各运动区的位置如图~\ref{fig:brain}~所示。
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.4\textwidth]{brain.pdf}
+    \includegraphics[width=0.3\textwidth]{brain.pdf}
     \caption{大脑皮层运动相关区域\cite{penfield1950cerebral}}
     \label{fig:brain}
 \end{figure}
 
 \subsection{脑电图信号及其特性}
 
-脑电图信号（Electroencephalogram，EEG）由皮质内大量神经元突触后电位同步总和形成，是很多神经元共同活动的结果\cite{ZWQX201803022}。EEG信号可以分为深部EEG，皮层EEG和头皮EEG\cite{1022779250.nh}。相比深部EEG和皮层EEG，从头皮采集的EEG信号需穿透颅骨和头皮组织，因此具有相对较低的信号质量，但头皮EEG无需进行任何开创性手术，极大地降低了医疗风险，保证了高度的安全性，并且实施便捷，获取数据更为简易。因此，头皮EEG成为了神经系统疾病诊断、脑功能研究等领域广泛应用的首选工具。后文中所提到的EEG信号，如无特殊说明，都是指头皮EEG。
+脑电图信号由皮质内大量神经元突触后电位同步总和形成，是很多神经元共同活动的结果\cite{ZWQX201803022}。EEG信号可以分为深部EEG，皮层EEG和头皮EEG\cite{1022779250.nh}。相比深部EEG和皮层EEG，从头皮采集的EEG信号需穿透颅骨和头皮组织，因此具有相对较低的信号质量，但头皮EEG无需进行任何开创性手术，极大地降低了医疗风险，保证了高度的安全性，并且实施便捷，获取数据更为简易。因此，头皮EEG成为了神经系统疾病诊断、脑功能研究等领域广泛应用的首选工具。后文中所提到的EEG信号，如无特殊说明，都是指头皮EEG。
 
 EEG信号使用脑电采集系统作为记录设备，其样式如图~\ref{fig:equip}~所示，通过在受试者头皮上放置单个或多个脑电极（或称通道），以连续、实时的方式记录一段时间内的大脑皮层产生的电信号。图~\ref{fig:montage}~展示了脑电极在头皮上的一种排列方式。EEG信号的采集方式决定了其数据的形状，通常为脑电极（通道）与时间构成的二维数据。对于单通道采集的数据，EEG信号可视化以电位为纵轴，时间为横轴，表示该通道上电位随时间的变化，图~\ref{fig:eeg}~为包含16个通道的EEG信号可视化，可视化中相邻的通道在空间上未必具有相邻关系。
-\begin{figure}[h]
+\begin{figure}[ht]
     \centering
-    \begin{subfigure}{0.4\textwidth}
+    \begin{subfigure}{0.3\textwidth}
       \includegraphics[width=\linewidth]{equip.pdf}
       \caption{脑电采集设备\cite{equip}}
       \label{fig:equip}
     \end{subfigure}\qquad
-    \begin{subfigure}{0.4\textwidth}
+    \begin{subfigure}{0.3\textwidth}
       \includegraphics[width=\linewidth]{montage.pdf}
       \caption{一种脑电极排列方式\cite{han2023eeg}}
       \label{fig:montage}
@@ -38,7 +38,7 @@ EEG信号使用脑电采集系统作为记录设备，其样式如图~\ref{fig:e
   \end{figure}
 \begin{figure}
     \centering
-    \includegraphics[width=0.8\textwidth]{eeg.pdf}
+    \includegraphics[width=0.5\textwidth]{eeg.pdf}
     \caption{EEG信号可视化}
     \label{fig:eeg}
 \end{figure}
@@ -49,7 +49,7 @@ EEG信号使用脑电采集系统作为记录设备，其样式如图~\ref{fig:e
 
 (2) Theta：频率范围为4-8Hz。Theta节律不仅出现在轻度睡眠和快速眼动睡眠阶段，还可见于青少年和儿童清醒时的脑电图中，以及成年人在专注、疲劳或焦虑状态下的头顶前部中线位置\cite{ishihara1966activation,ishihara1967interaction}。
 
-(3) Alpha：频率范围为8-13Hz。Alpha节律依据起源位置的不同可分为两大类：一类是源自初级躯体感觉皮层（Primary Somatosensory Cortex, S1）的Mu节律（或称运动Alpha节律）\cite{hari1997human}，手部运动、运动想象等活动可以阻断Mu节律，而在肌肉放松状态下则会增强Mu节律；另一类则是通常在个体放松、闭眼静息状态出现，来源于视觉皮层或枕叶的Alpha节律，其在睁眼或注意力集中时受到抑制，表现为振幅减小。此外，有研究指出，脑力劳动的增加也将导致Alpha节律活动的减弱\cite{1022779250.nh}。
+(3) Alpha：频率范围为8-13Hz。Alpha节律依据起源位置的不同可分为两大类：一类是源自初级躯体感觉皮层的Mu节律（或称运动Alpha节律）\cite{hari1997human}，手部运动、运动想象等活动可以阻断Mu节律，而在肌肉放松状态下则会增强Mu节律；另一类则是通常在个体放松、闭眼静息状态出现，来源于视觉皮层或枕叶的Alpha节律，其在睁眼或注意力集中时受到抑制，表现为振幅减小。此外，有研究指出，脑力劳动的增加也将导致Alpha节律活动的减弱\cite{1022779250.nh}。
 
 (4) Beta：频率范围为13-30Hz。Beta节律根据分布区域的不同可分为两大类：一类是在感觉运动皮层区域表现最强的运动Beta节律，其活动强度受运动任务影响，在运动想象、运动准备和运动执行过程中，运动Beta节律的幅值功率都会有相应变化；另一类是在额叶区域表现最强的额叶Beta节律，此类节律主要出现在清醒、警觉、专注以及执行认知任务时的大脑活动中，其强度的增加通常与认知活动和心理负荷的上升相关联。
 
@@ -89,12 +89,12 @@ EEG信号具有时间域、空间域、频率域三个维度的特征。在时�
 
 (1) 事件相关去同步：ERD是指在执行一项特定的任务，如运动想象或实际运动时，原本在一定频段上占主导地位的同步脑电活动（即电位振荡趋于一致）出现了减少或消失，表现为脑电功率的下降。这一现象通常与大脑皮层的兴奋性增加和特定区域活动增强有关。在运动想象或实际运动时，初级运动皮层和辅助运动区的Alpha节律（Mu节律）、Beta节律通常会出现ERD现象。
 
-(2) 事件相关同步：ERS与ERD相反，是指在特定任务或事件发生后，某一频段的脑电活动同步性增强，表现为脑电功率的升高。ERS可能表示大脑某些区域的活动暂时减少或进入了一种休眠状态，为其他区域的活动让渡资源，或者代表了大脑在执行某些认知或精神任务时的资源重新配置。在运动想象或实际运动时，事件相关同步现象会出现在Alpha节律（Mu节律）和Beta节律中。
+(2) 事件相关同步：ERS与ERD相反，是指在特定任务或事件发生后，某一频段的脑电活动同步性增强，表现为脑电功率的升高。ERS可能表示大脑某些区域的活动暂时减少或进入了一种休眠状态，为其他区域的活动让渡资源，或者代表了大脑在执行某些认知或精神任务时的资源重新配置。在运动想象或实际运动时，ERS现象会出现在Alpha节律（Mu节律）和Beta节律中。
 
 在单侧肢体的运动想象中，大脑呈现出不对称的激活模式：对侧大脑半球（即与执行想象运动的肢体相对应的脑区）通常会出现更为显著的ERD现象，意味着该区域的特定频段脑电活动强度减弱\cite{pfurtscheller1977event}。与此同时，执行运动想象任务的同侧大脑半球则会出现一定程度的ERS现象。实际上，在运动想象任务结束后的放松阶段，ERS现象更为明显，此时大脑可能在先前活跃区域呈现出电活动同步性的增强，这一现象反映了大脑从运动想象状态向静息状态转变时的活动调整和资源分配。进行左右手运动想象时，脑功率谱密度变化如图~\ref{fig:erders}~所示，当想象左手运动时，大脑皮层右侧（C4电极附近）出现ERD现象，相关区域能量减小；当想象右手运动时，大脑皮层左侧（C3电极附近）出现ERD现象，相关区域能量减小\cite{blankertz2010neurophysiological}。
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\textwidth]{erders.pdf}
+    \includegraphics[width=0.9\textwidth]{erders.pdf}
     \caption{左右手运动想象的ERD现象\cite{blankertz2010neurophysiological}}
     \label{fig:erders}
 \end{figure}
@@ -107,40 +107,38 @@ EEG信号具有时间域、空间域、频率域三个维度的特征。在时�
 
 \subsection{卷积神经网络}
 
-卷积神经网络（Convolutional Neural Network，CNN）是深度学习领域经典且重要的模型，其设计灵感来自于生物学中对动物视觉系统的理解，设计目的是模拟人类的视觉处理过程。CNN在计算机视觉领域取得了巨大成功，广泛应用于图像识别、图像分类、物体检测、语义分割、视频分析等任务中，其优势在于能够自动学习图像特征，无需进行人工特征提取，从而简化了流程，并提高了性能。
+卷积神经网络是深度学习领域经典且重要的模型，其设计灵感来自于生物学中对动物视觉系统的理解，设计目的是模拟人类的视觉处理过程。CNN在计算机视觉领域取得了巨大成功，广泛应用于图像识别、图像分类、物体检测、语义分割、视频分析等任务中，其优势在于能够自动学习图像特征，无需进行人工特征提取，从而简化了流程，并提高了性能。
 
 CNN的结构主要包括输入层（Input Layer）、卷积层（Convolutional Layer）、池化层（Pooling Layer）、激活函数（Activation Function）、全连接层（Fully Connected Layer）、输出层（Output Layer），此外还可包括Dropout层、归一化层（Normalization Layer）等。一个简单的用于分类任务的CNN网络结构如图~\ref{fig:cnn}~所示。论文将对其中的重要结构进行说明。
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\textwidth]{cnn.pdf}
+    \includegraphics[width=0.6\textwidth]{cnn.pdf}
     \caption{多分类卷积神经网络基本结构}
     \label{fig:cnn}
 \end{figure}
 
 \paragraph{卷积层}
 
-卷积层是CNN的核心组成部分之一，它对人类视觉系统中的感受野（Receptive Field）进行模拟，对图像的局部特征进行提取。卷积层使用一组可学习的滤波器（Filter），或称卷积核（Kernel）在输入数据上进行滑动，并与覆盖窗口内的数据做元素间乘法和加法运算，得到一个特征图（Feature Map）或激活图（Activation Map），这种计算过程被称为卷积。卷积操作中有许多可设置的参数，如卷积核的大小（Kernel Size），卷积核滑动的步长（Stride），数据填充（Padding）等。卷积核的大小决定了局部感受野的大小，较大的卷积核可以捕获更大范围的上下文信息，而较小的卷积核在捕获局部细节上更具优势；步长决定了卷积核在数据上移动的间距，当步长为1时，进行逐元素的卷积；填充是在数据外缘填充额外的数据，一般用于对数据大小进行扩充，使得卷积后能够获得与原数据大小相同的特征图。图~\ref{fig:conv}~展示了在一个4\times4的输入数据上进行卷积的过程，卷积核大小为3\times3，步长为1，填充为1，红框部分的计算过程如公式~\ref{eq:conv}~所示。
-\begin{figure}
+卷积层是CNN的核心组成部分之一，它对人类视觉系统中的感受野（Receptive Field）进行模拟，对图像的局部特征进行提取。卷积层使用一组可学习的滤波器（Filter），或称卷积核（Kernel）在输入数据上进行滑动，并与覆盖窗口内的数据做元素间乘法和加法运算，得到一个特征图（Feature Map）或激活图（Activation Map），这种计算过程被称为卷积。卷积操作中有许多可设置的参数，如卷积核的大小（Kernel Size），卷积核滑动的步长（Stride），数据填充（Padding）等。卷积核的大小决定了局部感受野的大小，较大的卷积核可以捕获更大范围的上下文信息，而较小的卷积核在捕获局部细节上更具优势；步长决定了卷积核在数据上移动的间距，当步长为1时，进行逐元素的卷积；填充是在数据外缘填充额外的数据，一般用于对数据大小进行扩充，使得卷积后能够获得与原数据大小相同的特征图。图~\ref{fig:conv}~展示了在一个\(4\times4\)的输入数据上进行卷积的过程，卷积核大小为\(3\times3\)，步长为1，填充为1。
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=\textwidth]{conv.pdf}
+    \includegraphics[width=0.6\textwidth]{conv.pdf}
     \caption{二维卷积运算}
     \label{fig:conv}
 \end{figure}
-\begin{equation}
-    11=1\times0+0\times0+1\times0+2\times0+1\times1+2\times2+1\times0+0\times5+1\times6
-    \label{eq:conv}
-\end{equation}
 
-在处理如彩色图像这类多通道数据时（如RGB三通道），卷积核的通道数与输入图像的通道数相匹配，卷积核的每个通道分别与输入图像的相应通道进行卷积操作，然后将各个通道的结果进行逐元素相加，形成最终的输出特征图，其过程如图~\ref{fig:mutconv}~所示，其中使用了一个具有三通道的卷积核。在经过卷积操作生成的特征图中，任一元素实质上是由上一层特征图中的\(N \times N\)个相邻元素加权组合而成，使得该元素具有\(N \times N\)大小的感受野。随着卷积层的叠加，感受野逐渐扩大，意味着在深层的特征图中，一个元素能够捕获到输入中更广阔区域的信息，提取到的特征更为高级和抽象。图~\ref{fig:highconv}~展示了感受野随层次加深的变化。
-\begin{figure}
+在处理如彩色图像这类多通道数据时（如RGB三通道），卷积核的通道数与输入图像的通道数相匹配，卷积核的每个通道分别与输入图像的相应通道进行卷积操作，然后将各个通道的结果进行逐元素相加，形成最终的输出特征图，其过程如图~\ref{fig:mutconv}~所示，其中使用了一个具有三通道的卷积核。
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\textwidth]{mutconv.pdf}
+    \includegraphics[width=0.6\textwidth]{mutconv.pdf}
     \caption{多通道卷积运算}
     \label{fig:mutconv}
 \end{figure}
-\begin{figure}
+
+在经过卷积操作生成的特征图中，任一元素实质上是由上一层特征图中的\(N \times N\)个相邻元素加权组合而成，使得该元素具有\(N \times N\)大小的感受野。随着卷积层的叠加，感受野逐渐扩大，意味着在深层的特征图中，一个元素能够捕获到输入中更广阔区域的信息，提取到的特征更为高级和抽象。图~\ref{fig:highconv}~展示了感受野随层次加深的变化。
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.7\textwidth]{highconv.png}
+    \includegraphics[width=0.5\textwidth]{highconv.png}
     \caption{感受野随层次加深示例}
     \label{fig:highconv}
 \end{figure}
@@ -150,9 +148,9 @@ CNN的结构主要包括输入层（Input Layer）、卷积层（Convolutional L
 池化层是CNN的重要组成部分之一，用来对特征图进行降维，从而在保留重要信息的同时减少参数的数量。池化层的主要类型为最大池化（Max Pooling）和平均池化（Average Pooling），此外还有最小池化（Minimum Pooling）、L2范数池化（L2-Normalized Pooling）等，但在实际应用中并不常见。
 
 在最大池化中，池化层将输入特征图中每个区域的最大值作为输出，能够保留特征图中最为明显的特征；在平均池化中，池化层将输入特征图中每个区域的平均值作为输出，相较于最大池化，平均池化更为平滑，能够降低特征图中的噪声，但可能会丢失一些细节信息。池化层中的可调参数通常是池化核的大小和步长，池化核的大小决定了池化操作所覆盖的局部区域的大小，步长决定了池化核每次移动的距离，二者共同决定了输出特征图的空间维度。图~\ref{fig:pooling}~展示了最大池化和最小池化的计算过程，其中，池化核的大小都为\(2\times2\)，步长都为1。在CNN中，池化层通常与卷积层交替堆叠，构成特征提取的基本结构。
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.7\textwidth]{pooling.png}
+    \includegraphics[width=0.4\textwidth]{pooling.png}
     \caption{最大池化与平均池化}
     \label{fig:pooling}
 \end{figure}
@@ -210,12 +208,12 @@ Dropout是一种正则化技术，主要用于缓解神经网络在训练过程�
 
 \subsection{循环神经网络}
 
-循环神经网络（Recurrent Neural Network，RNN）是一种用于处理序列数据的深度神经网络结构，其内部的循环连接使得网络在处理每个时间步的输入时都能够保留之前的信息状态，即具有“记忆”能力。这种特性使得RNN特别适合用来处理具有先后顺序的数据，如时间序列数据、自然语言文本等。
+循环神经网络是一种用于处理序列数据的深度神经网络结构，其内部的循环连接使得网络在处理每个时间步的输入时都能够保留之前的信息状态，即具有“记忆”能力。这种特性使得RNN特别适合用来处理具有先后顺序的数据，如时间序列数据、自然语言文本等。
 
-原始的RNN模型中的循环连接使得梯度在进行传播时容易呈现指数级衰减或增长的问题，即容易出现梯度消失或梯度爆炸现象，从而导致模型难以训练，难以捕捉到序列数据中的长期依赖关系。长短期记忆网络（Long Short-Term Memory，LSTM）针对这些问题进行了改进，成为现阶段被广泛使用的基于RNN架构的模型之一。LSTM引入了门控机制，通过一系列门控单元控制信息的存储、读取和更新，从而实现对长期和短期信息的有效管理。LSTM的主要组成部分包括单元状态（Cell State）、遗忘门（Forget Gate）、输入门（Input Gate）和输出门（Output Gate），LSTM一个元胞的结构如图~\ref{fig:lstm}~所示，其中，\(h_{t-1}\)表示前一时间步的隐藏状态，\(c_{t-1}\)表示前一步的单元状态，\(x_t\)表示当前时间步的输出，\(f_t\)表示忘记门，\(i_t\)表示输入门，\(o_t\)表示输出门，\(\sigma\)为Sigmoid激活函数，代表门控的程度，\(tanh\)为双曲正切激活函数，用于更新细胞状态。多个元胞前后相连，就组成了LSTM。
-\begin{figure}
+原始的RNN模型中的循环连接使得梯度在进行传播时容易呈现指数级衰减或增长的问题，即容易出现梯度消失或梯度爆炸现象，从而导致模型难以训练，难以捕捉到序列数据中的长期依赖关系。长短期记忆网络针对这些问题进行了改进，成为现阶段被广泛使用的基于RNN架构的模型之一。LSTM引入了门控机制，通过一系列门控单元控制信息的存储、读取和更新，从而实现对长期和短期信息的有效管理。LSTM的主要组成部分包括单元状态（Cell State）、遗忘门（Forget Gate）、输入门（Input Gate）和输出门（Output Gate），LSTM一个元胞的结构如图~\ref{fig:lstm}~所示，其中，\(h_{t-1}\)表示前一时间步的隐藏状态，\(c_{t-1}\)表示前一步的单元状态，\(x_t\)表示当前时间步的输出，\(f_t\)表示忘记门，\(i_t\)表示输入门，\(o_t\)表示输出门，\(\sigma\)为Sigmoid激活函数，代表门控的程度，\(tanh\)为双曲正切激活函数，用于更新细胞状态。多个元胞前后相连，就组成了LSTM。
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.7\textwidth]{lstm.pdf}
+    \includegraphics[width=0.6\textwidth]{lstm.pdf}
     \caption{LSTM元胞结构}
     \label{fig:lstm}
 \end{figure}
@@ -270,16 +268,16 @@ Dropout是一种正则化技术，主要用于缓解神经网络在训练过程�
 
 \subsection{注意力机制}
 
-注意力机制的提出受到人类认知科学的启发，其核心理念在于模拟人类大脑在处理信息过程中的选择性关注机制，即并非均匀地分配注意力处理对待所有输入，而是将注意力主动、动态且有选择性地聚焦于最重要或最相关的信息上。自二十世纪被提出以来\cite{730558}，注意力机制在计算机视觉、自然语言处理等领域得到了广泛的应用，并表现出了优秀的效果。
+注意力机制（Attention Mechanisms）的提出受到人类认知科学的启发，其核心理念在于模拟人类大脑在处理信息过程中的选择性关注机制，即并非均匀地分配注意力处理对待所有输入，而是将注意力主动、动态且有选择性地聚焦于最重要或最相关的信息上。自二十世纪被提出以来\cite{730558}，注意力机制在计算机视觉、自然语言处理等领域得到了广泛的应用，并表现出了优秀的效果。
 
 注意力机制的基本思想为计算每个位置的权重，代表该位置对输出的重要性，权重通常可以由可学习的函数或神经网络生成，是一个与输入相同大小的矩阵，使用权重对输入数据进行加权操作，从而为重要的数据分配更多的关注。注意力机制通常包括查询矩阵（Query）、键矩阵（Key）和值矩阵（Value），其计算如公式~\ref{eq:sa}~所示，
 \begin{equation}\label{eq:sa}
     Attention(Q,\,K,\,V)=softmax(\frac{QK^{T}}{\sqrt{d_k}}V)
 \end{equation}
 其中，\(Q\)为查询矩阵，\(K\)为键矩阵，\(V\)为值矩阵，\(d_k\)为键的维度。输入数据首先通过查询、键和值三个矩阵进行变换，然后计算出每个位置的注意力得分（Attention Score），这个得分衡量了数据中每个位置与当前处理位置之间的关联强度，所有位置的得分构成注意力矩阵。接着，使用Softmax函数获取注意力矩阵的归一化表示，最后，使用注意力矩阵对输入数据进行加权求和，从而得到最终的结果。注意力机制的结构如图~\ref{fig:sa}~所示。
-\begin{figure}
+\begin{figure}[ht]
     \centering
-    \includegraphics[width=0.3\textwidth]{sa.png}
+    \includegraphics[width=0.2\textwidth]{sa.png}
     \caption{注意力机制}
     \label{fig:sa}
 \end{figure}
