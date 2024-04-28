@@ -241,7 +241,7 @@ Kappa系数的范围在-1至1区间内，通常大于0，Kappa值越大，表明
     \toprule
     Models & ACC(\%) & Kappa \\
     \midrule
-    Inception-In & 64.01 & 0.48 \\
+    Inception-In & 69.01 & 0.58 \\
     Inception-After & \textbf{74.42} & \textbf{0.65} \\
     \bottomrule
   \end{tabularx}
@@ -260,7 +260,7 @@ Kappa系数的范围在-1至1区间内，通常大于0，Kappa值越大，表明
       \midrule
       CBAM\cite{woo2018cbam} & 74.97 & 0.64 \\
       scSE\cite{8578843} & \textbf{75.35} & \textbf{0.67} \\
-      CoordAttention\cite{Hou2021CoordinateAF} & 73.21 & 0.62 \\
+      CoordAttention\cite{Hou2021CoordinateAF} & 73.82 & 0.62 \\
       \midrule
       svSE & 76.16 & 0.68 \\
       \bottomrule
@@ -332,7 +332,7 @@ SCoT引入LSTM的方式有两种：在LSTM Layer之前，称之为SCoT-before；
       \toprule
       Models & ACC(\%) & Kappa & SD \\
       \midrule
-      SCoT-Before & 76.25 & 0.68 & 11.49 \\
+      SCoT-Before & 76.55 & 0.68 & 11.49 \\
       SCoT-After & \textbf{77.89} & \textbf{0.70} & \textbf{10.22} \\
       \bottomrule
     \end{tabularx}
@@ -427,7 +427,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 (1) HA-FuseNet在未进行数据增强的被试内实验中，取得了最优的准确率和Kappa一致性，且准确率标准差达到了10.22，证明了HA-FuseNet具有优秀的MI-EEG分类能力，且对不同的被试具有较好的稳定性；
 
-(2) 使用SG轻量化卷积模块的HA-FuseNet(SG)在未进行数据增强的被试内实验中，尽管性能较HA-FuseNet有所下降，但准确率和Kappa系数仅次于ShallowConvNet，且标准差低于ShallowConvNet，HA-FuseNet(SG)的平均准确率较HA-FuseNet下降了约0.86个百分点，在一些被试上，其准确率高于HA-FuseNet；
+(2) 使用SG轻量化卷积模块的HA-FuseNet(SG)在未进行数据增强的被试内实验中，尽管性能较HA-FuseNet有所下降，但准确率和Kappa系数仅次于ShallowConvNet，且标准差低于ShallowConvNet，HA-FuseNet(SG)的平均准确率较HA-FuseNet下降了约0.66个百分点，在一些被试上，其准确率高于HA-FuseNet；
 
 (3) HA-FuseNet在被试间实验中，取得了最高的平均准确率和Kappa一致性，证明了HA-FuseNet具有优秀的跨被试泛化能力。
 
@@ -481,7 +481,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
         LMDA-Net\cite{miao2023lmda} & 55.90 & \textbf{90.28} & 81.94 & 76.04 & 74.50 \\
         \midrule 
         \textbf{HA-FuseNet}  & 65.97 & 89.58 & 81.60 & 78.47 & 77.89 \\
-        \textbf{HA-FuseNet(SG)}  & 62.85 & 91.67 & 83.68 & 74.95 & 77.03 \\
+        \textbf{HA-FuseNet(SG)}  & 62.85 & 91.67 & 83.68 & 74.95 & 77.23 \\
         \bottomrule
       \end{tabularx}
     \end{subtable}
@@ -518,7 +518,7 @@ LS-Net与DIS-Net以并行结构级联主要是出于以下考虑：
 
 (4) EEGResNet取得了最差的效果，低于EEGConformer，这可能是因为在未进行数据增强的情况下，EEGResNet无法很好地发挥其深度架构的优势，而EEGConformer使用了未经过预训练的Transformer，这可能成为其在较小规模的数据集上表现不优的原因；
 
-对比基准模型和论文提出的模型的实验数据，可以发现HA-FuseNet取得了最高的平均准确率和Kappa值，且在1号被试和6号被试上取得了最高的准确率，对于其他模型平均表现较差的2号和4号被试，HA-FuseNet也取得了良好的性能。同时，HA-FuseNet的准确率标准差低于具有次优平均准确率和Kappa值的ShallowConvNet；使用SG轻量化卷积模块的HA-FuseNet(SG)取得了仅次于ShallowConvNet的准确率和Kappa一致性，其准确率的标准差同样低于ShallowConvNet。相较于HA-FuseNet，HA-FuseNet(SG)的平均准确率仅下降了约0.86个百分点。
+对比基准模型和论文提出的模型的实验数据，可以发现HA-FuseNet取得了最高的平均准确率和Kappa值，且在1号被试和6号被试上取得了最高的准确率，对于其他模型平均表现较差的2号和4号被试，HA-FuseNet也取得了良好的性能。同时，HA-FuseNet的准确率标准差低于具有次优平均准确率和Kappa值的ShallowConvNet；使用SG轻量化卷积模块的HA-FuseNet(SG)取得了仅次于ShallowConvNet的准确率和Kappa一致性，其准确率的标准差同样低于ShallowConvNet。相较于HA-FuseNet，HA-FuseNet(SG)的平均准确率仅下降了约0.66个百分点。
 
 实验证明了HA-FuseNet和HA-FuseNet(SG)的有效性，能够在使用小规模数据集的情况下取得较好的性能表现。此外，通过对各项模型的实验结果分析，印证了先前研究中，关于浅层网络在小规模数据集的MI-EEG分类任务中性能表现优良的理论，而多尺度密集连接使得HA-FuseNet能够同时利用多尺度的低级特征和高级语义信息，同时，通过全局自注意力机制和局部混合注意力机制进行多维的加权，利用LSTM对时间维度的长短期依赖关系进行提取，综合取得了较基准模型更好的性能。
 
