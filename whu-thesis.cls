@@ -245,9 +245,10 @@
     \fancypagestyle { plain }
     {
       \fancyhf {}
-      \fancyfoot [ C ]   { \zihao { 5 } \thepage }
-      \fancyhead [ O C ] { \zihao { 5 } \g__whu_head_odd_tl }
-      \fancyhead [ E C ] { \zihao { 5 } \g__whu_head_even_tl }
+      \fancyhead [CE] { \zihao {5} 武汉大学硕士学位论文 }
+      \fancyhead [CO] { \zihao {5} \g__whu_head_odd_tl }
+      \fancyfoot [C] { \zihao {5} \thepage }
+      \renewcommand{\headrulewidth}{ 0.4pt } % 页眉下方的横线宽度
     }
   }
   {
