@@ -64,7 +64,7 @@ EEG信号的空间分辨率较为不稳定，例如，在BCI Competition IV Data
 
 \subsection{多尺度密集连接}
 
-Gao Huang等人于2016年提出了密集连接网络（Dense Convolutional Network，DenseNet）\cite{huang2017densely}。在ResNet的基础上，DenseNet提出了一种更为激进的连接模式：引入从任意层到后续层的直接连接，即密集连接（Dense Connection）。DenseNet的第 \(l\) 层接收所有前序特征图为输入，其输出为 \(x_l\)，计算如公式~\ref{eq:dense-conn}~所示。
+Gao Huang等人提出了密集连接网络（Dense Convolutional Network，DenseNet）\cite{huang2017densely}。在ResNet的基础上，DenseNet提出了一种更为激进的连接模式：引入从任意层到后续层的直接连接，即密集连接（Dense Connection）。DenseNet的第 \(l\) 层接收所有前序特征图为输入，其输出为 \(x_l\)，计算如公式~\ref{eq:dense-conn}~所示。
 \begin{equation}
   x_l = H_l([x_0, x_1, ···, x_{l-1}])
   \label{eq:dense-conn}
